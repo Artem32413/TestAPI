@@ -2,6 +2,7 @@ package warehouse
 
 import (
 	"apiGo/internal/components"
+	"fmt"
 	"net/http"
 )
 
@@ -16,20 +17,27 @@ type InventoryService struct {
 
 func (s *InventoryService) AddingNewWarehouses(w http.ResponseWriter, r *http.Request) {
 
-	var warehouses Warehouses
+	if r.Method == http.MethodPost {
+		var warehouses Warehouses
 
-	if err := components.NewDec(r, &warehouses); err != nil {
-		s.Logger.Error(err.Error())
-		return
+		defer r.Body.Close()
+
+		if err := components.NewDec(r, &warehouses); err != nil {
+			s.Logger.Error(err.Error())
+			return
+		}
+
+		fmt.Println(warehouses)
+
+		w.WriteHeader(http.StatusOK)
+
+		if err := s.Addition(warehouses); err != nil {
+			s.Logger.Error(err.Error())
+			return
+		}
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
 	}
-
-	w.WriteHeader(http.StatusOK)
-
-	if err := s.Addition(warehouses); err != nil {
-		s.Logger.Error(err.Error())
-		return
-	}
-
 }
 
 func (s *InventoryService) DisplayAllWarehouses(w http.ResponseWriter, r *http.Request) {

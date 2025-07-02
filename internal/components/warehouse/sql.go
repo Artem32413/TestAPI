@@ -23,6 +23,8 @@ func (s *InventoryService) Display() ([]Warehouses, error) {
 		return nil, err
 	}
 
+	defer s.Db.Close(context.Background())
+
 	var newSl []Warehouses
 
 	for r.Next() {
