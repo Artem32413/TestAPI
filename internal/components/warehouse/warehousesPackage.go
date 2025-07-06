@@ -7,6 +7,7 @@ import (
 )
 
 type Warehouses struct {
+	Id         int    `json:"id"`
 	Identifier string `json:"identifier"`
 	Addr       string `json:"addr"`
 }
@@ -19,8 +20,6 @@ func (s *InventoryService) AddingNewWarehouses(w http.ResponseWriter, r *http.Re
 
 	if r.Method == http.MethodPost {
 		var warehouses Warehouses
-
-		defer r.Body.Close()
 
 		if err := components.NewDec(r, &warehouses); err != nil {
 			s.Logger.Error(err.Error())

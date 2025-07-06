@@ -1,6 +1,10 @@
 package product
 
-import "context"
+import (
+	"context"
+
+	"github.com/google/uuid"
+)
 
 var (
 	displayProducts = `SELECT * FROM Products`
@@ -33,7 +37,11 @@ func (s *InventoryService) DisplayProducts() ([]Products, error) {
 
 func (s *InventoryService) AdditionProducts(products Products) error {
 
-	if _, err := s.Db.Exec(context.Background(), addingAProducts, products.Description, products.KeyValue); err != nil {
+	newUuid := uuid.New().String()
+
+	products.Identifier = newUuid
+
+	if _, err := s.Db.Exec(context.Background(), addingAProducts, products.Identifier, products.Name, products.Description, products.KeyValue, products.Weight, products.Barcode); err != nil {
 		return err
 	}
 

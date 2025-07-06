@@ -30,8 +30,6 @@ func (s *InventoryService) Connection(w http.ResponseWriter, r *http.Request) {
 
 	var price Inventory
 
-	defer r.Body.Close()
-
 	if err := components.NewDec(r, &price); err != nil {
 		s.Logger.Error(err.Error())
 		return

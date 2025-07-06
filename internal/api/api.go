@@ -44,15 +44,13 @@ type keyRequestID struct{}
 func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		requestID := r.Header.Get("x-request-id")
+		newUuid := r.Header.Get("x-request-id")
 
-		if requestID == "" {
-			requestID = uuid.New().String()
-		}
+		newUuid = uuid.New().String()
 
-		logger := logrus.WithField("request_id", requestID)
+		logger := logrus.WithField("request_id", newUuid)
 
-		ctx := context.WithValue(r.Context(), keyRequestID{}, requestID)
+		ctx := context.WithValue(r.Context(), keyRequestID{}, newUuid)
 		ctx = context.WithValue(ctx, "logger", logger)
 
 		r = r.WithContext(ctx)

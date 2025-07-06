@@ -76,8 +76,6 @@ func (s *InventoryService) UpdateProduct(w http.ResponseWriter, r *http.Request)
 
 	var products Products
 
-	defer r.Body.Close()
-
 	if err := components.NewDec(r, &products); err != nil {
 		s.Logger.Error(err.Error())
 		return
