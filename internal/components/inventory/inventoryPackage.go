@@ -8,25 +8,30 @@ import (
 )
 
 type Inventory struct {
-	Warehouse_id string  `json:"warehouses"`
-	Product_id   string  `json:"products"`
+	Warehouse_id string  `json:"warehouse_id"`
+	Product_id   string  `json:"product_id"`
 	Quantity     int     `json:"quantity,omitempty"`
 	Price        float64 `json:"price,omitempty"`
 	Discount     float64 `json:"discount,omitempty"`
 }
 
 type NewInventory struct {
-	Warehouse_id string `json:"warehouses"`
-	Product_id   []int  `json:"products"`
-	Quantity     int    `json:"quantity"`
+	Warehouse_id string   `json:"warehouse_id"`
+	Product_id   []string `json:"product_id"`
+	Quantity     int      `json:"quantity"`
+}
+
+type NewInventoryDiscount struct {
+	Warehouse_id string   `json:"warehouse_id"`
+	Product_id   []string `json:"product_id"`
+	Discount     float64  `json:"discount"`
 }
 
 type InventoryService struct {
-    *components.Settings
+	*components.Settings
 }
 
-
-func (s *InventoryService) Connection(w http.ResponseWriter, r *http.Request) {
+func (s *InventoryService) SetPrice(w http.ResponseWriter, r *http.Request) {
 
 	var price Inventory
 
@@ -35,7 +40,7 @@ func (s *InventoryService) Connection(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := s.ConnectingTable(price); err != nil {
+	if err := s.SetPriceDB(price); err != nil {
 		s.Logger.Error(err.Error())
 		return
 	}
@@ -62,7 +67,7 @@ func (s *InventoryService) UpdateInventory(w http.ResponseWriter, r *http.Reques
 
 func (s *InventoryService) DiscountInventory(w http.ResponseWriter, r *http.Request) {
 
-	var discount Inventory
+	var discount NewInventoryDiscount
 
 	if err := components.NewDec(r, &discount); err != nil {
 		s.Logger.Error(err.Error())

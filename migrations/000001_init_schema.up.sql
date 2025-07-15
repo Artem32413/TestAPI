@@ -1,12 +1,12 @@
 CREATE TABLE IF NOT EXISTS WarehousesTable (
     id SERIAL PRIMARY KEY,
-    identifier VARCHAR(255) NOT NULL,
+    warehouse_id VARCHAR(255) NOT NULL,
     addr VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS Products (
     id SERIAL PRIMARY KEY,
-    identifier VARCHAR(255) NOT NULL UNIQUE,
+    product_id VARCHAR(255) NOT NULL UNIQUE,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     weight VARCHAR(50),
@@ -14,11 +14,9 @@ CREATE TABLE IF NOT EXISTS Products (
 );
 
 CREATE TABLE IF NOT EXISTS product_key_values (
-    id SERIAL PRIMARY KEY,
-    product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-    key INTEGER NOT NULL,
-    value TEXT NOT NULL,
-    CONSTRAINT pk_product_key_value UNIQUE (product_id, key)
+    key VARCHAR(255) NOT NULL,
+    value VARCHAR(255) NOT NULL,
+    PRIMARY KEY (product_id, key)
 );
 
 CREATE TABLE IF NOT EXISTS Inventory (
@@ -38,5 +36,9 @@ CREATE TABLE IF NOT EXISTS Analytics (
     sold_goods INTEGER NOT NULL DEFAULT 0,
     total_sum NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
     report_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    CONSTRAINT uc_analytics_record UNIQUE (warehouse_id, product_id, report_date)
+    CONSTRAINT uc_analytics_record UNIQUE (
+        warehouse_id,
+        product_id,
+        report_date
+    )
 );

@@ -2,56 +2,134 @@ package product
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 )
 
 var (
-	displayProducts = `SELECT * FROM Products`
-	addingAProducts = `INSERT INTO Products (identifier, name, description, weight, barcode) VALUES ($1, $2, $3, $4, $5)`
-	updateAProducts = `UPDATE Products SET description = $1, keyvalue = $2 WHERE identifier = $3`
-	productCheck    = `SELECT EXISTS(SELECT 1 FROM Products WHERE identifier = $1)`
+	displayProducts = `
+	SELECT 
+    p.product_id,
+    p.name,
+    p.description,
+    p.weight,
+    p.barcode
+FROM 
+    products p
+`
+	displayKeyValue = `SELECT * FROM product_key_values WHERE product_id = $1`
+	addingAProducts = `INSERT INTO Products (product_id, name, description, weight, barcode) VALUES ($1, $2, $3, $4, $5)`
+	addingKeyValue  = `INSERT INTO product_key_values (product_id, key, value) VALUES ($1, $2, $3)`
+	deleteKeyValue  = `DELETE FROM product_key_values WHERE product_id = $1`
+	updateAProducts = `UPDATE Products SET description = $1 WHERE product_id = $2`
+	updateValue     = `UPDATE product_key_values SET value = $1 WHERE product_id = $2 AND key = $3`
+	productCheckUpd = `SELECT EXISTS(SELECT 1 FROM Products WHERE product_id = $1)`
+	productCheckIns = `SELECT EXISTS(SELECT 1 FROM Products WHERE name = $1)`
 )
 
 func (s *InventoryService) DisplayProducts() ([]Products, error) {
-
-	r, err := s.Db.Query(context.Background(), displayProducts)
+	productsRows, err := s.Db.Query(context.Background(), displayProducts)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("query products failed: %w", err)
+	}
+	defer productsRows.Close()
+
+	var products []Products
+	var productIDs []string
+
+	for productsRows.Next() {
+		var p Products
+		if err := productsRows.Scan(
+			&p.Product_id,
+			&p.Name,
+			&p.Description,
+			&p.Weight,
+			&p.Barcode,
+		); err != nil {
+			return nil, fmt.Errorf("scan product failed: %w", err)
+		}
+		products = append(products, p)
+		productIDs = append(productIDs, p.Product_id)
 	}
 
-	var newSl []Products
+	attrs, err := s.getAllAttributes(productIDs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get attributes: %w", err)
+	}
 
-	for r.Next() {
-		var np Products
+	for i := range products {
+		products[i].KeyValue = attrs[products[i].Product_id]
+	}
 
-		if err = r.Scan(&np.Identifier, &np.Name, &np.Description, &np.KeyValue, &np.Weight, &np.Barcode); err != nil {
-			return nil, err
+	return products, nil
+}
+func (s *InventoryService) getAllAttributes(productIDs []string) (map[string]map[string]string, error) {
+	if len(productIDs) == 0 {
+		return make(map[string]map[string]string), nil
+	}
+
+	query := `SELECT product_id, key, value FROM product_key_values WHERE product_id = ANY($1)`
+
+	rows, err := s.Db.Query(context.Background(), query, productIDs)
+	if err != nil {
+		return nil, fmt.Errorf("query attributes failed: %w", err)
+	}
+	defer rows.Close()
+
+	attrs := make(map[string]map[string]string)
+
+	for rows.Next() {
+		var productID, key, value string
+		if err := rows.Scan(&productID, &key, &value); err != nil {
+			return nil, fmt.Errorf("scan attribute failed: %w", err)
 		}
 
-		newSl = append(newSl, Products{np.Identifier, np.Name, np.Description, np.KeyValue, np.Weight, np.Barcode})
+		if _, exists := attrs[productID]; !exists {
+			attrs[productID] = make(map[string]string)
+		}
+		attrs[productID][key] = value
 	}
 
-	return newSl, nil
+	return attrs, nil
 }
-
 func (s *InventoryService) AdditionProducts(products Products) error {
 
 	newUuid := uuid.New().String()
 
-	products.Identifier = newUuid
+	products.Product_id = newUuid
 
-	if _, err := s.Db.Exec(context.Background(), addingAProducts, products.Identifier, products.Name, products.Description, products.KeyValue, products.Weight, products.Barcode); err != nil {
+	var exists bool
+	err := s.Db.QueryRow(context.Background(), productCheckIns, products.Name).Scan(&exists)
+
+	if err != nil {
 		return err
 	}
 
+	if exists {
+		return fmt.Errorf("Товар уже существует")
+	}
+
+	if _, err := s.Db.Exec(context.Background(), addingAProducts, products.Product_id, products.Name, products.Description, products.Weight, products.Barcode); err != nil {
+		return err
+	}
+
+	if _, err := s.Db.Exec(context.Background(), deleteKeyValue, products.Product_id); err != nil {
+		return err
+	}
+
+	for key, value := range products.KeyValue {
+		if _, err := s.Db.Exec(context.Background(), addingKeyValue, products.Product_id, key, value); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
-func (s *InventoryService) UpdateProd(products Products, identifier int) error {
+func (s *InventoryService) UpdateProd(products Products) error {
 
 	var exists bool
-	err := s.Db.QueryRow(context.Background(), productCheck, products.Identifier).Scan(&exists)
+	err := s.Db.QueryRow(context.Background(), productCheckUpd, products.Product_id).Scan(&exists)
 
 	if err != nil {
 		return err
@@ -61,7 +139,7 @@ func (s *InventoryService) UpdateProd(products Products, identifier int) error {
 		return err
 	}
 
-	result, err := s.Db.Exec(context.Background(), updateAProducts, products.Description, products.KeyValue, identifier)
+	result, err := s.Db.Exec(context.Background(), updateAProducts, products.Description, products.Product_id)
 
 	if err != nil {
 		return err
@@ -70,6 +148,12 @@ func (s *InventoryService) UpdateProd(products Products, identifier int) error {
 	rowsAffected := result.RowsAffected()
 	if rowsAffected == 0 {
 		return err
+	}
+
+	for key, value := range products.KeyValue {
+		if _, err := s.Db.Exec(context.Background(), updateValue, value, products.Product_id, key); err != nil {
+			return err
+		}
 	}
 
 	return nil

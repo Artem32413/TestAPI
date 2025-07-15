@@ -7,9 +7,9 @@ import (
 )
 
 type Warehouses struct {
-	Id         int    `json:"id"`
-	Identifier string `json:"identifier"`
-	Addr       string `json:"addr"`
+	Id           int    `json:"id"`
+	Warehouse_id string `json:"warehouse_id"`
+	Addr         string `json:"addr"`
 }
 
 type InventoryService struct {

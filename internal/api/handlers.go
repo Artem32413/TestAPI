@@ -40,10 +40,10 @@ func AllHandles() *http.ServeMux {
 	// Товары
 	mux.HandleFunc("/products/add/", product.AddingNewProducts)
 	mux.HandleFunc("/products/all/", product.DisplayAllProducts)
-	mux.HandleFunc("/products/update/id", product.UpdateProduct)
+	mux.HandleFunc("/products/update/", product.UpdateProduct)
 
 	// Инвентаризация
-	mux.HandleFunc("/inventory/connections/", inventory.Connection)
+	mux.HandleFunc("/inventory/price/", inventory.SetPrice)
 	mux.HandleFunc("/inventory/updateQuantity/", inventory.UpdateInventory)
 	mux.HandleFunc("/inventory/discount/", inventory.DiscountInventory)
 	mux.HandleFunc("/inventory/goods/", inventory.ListOfGoods)

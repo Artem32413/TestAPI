@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	addingAWarehouse = `INSERT INTO WarehousesTable (identifier, addr) VALUES ($1, $2)`
+	addingAWarehouse = `INSERT INTO WarehousesTable (warehouse_id, addr) VALUES ($1, $2)`
 	displayWarehouse = `SELECT * FROM WarehousesTable`
 )
 
@@ -19,9 +19,9 @@ func (s *InventoryService) Addition(warehouses Warehouses) error {
 
 	newUuid := uuid.New().String()
 
-	warehouses.Identifier = newUuid
+	warehouses.Warehouse_id = newUuid
 
-	if _, err := s.Db.Exec(context.Background(), addingAWarehouse, warehouses.Identifier, warehouses.Addr); err != nil {
+	if _, err := s.Db.Exec(context.Background(), addingAWarehouse, warehouses.Warehouse_id, warehouses.Addr); err != nil {
 		return err
 	}
 
@@ -40,11 +40,11 @@ func (s *InventoryService) Display() ([]Warehouses, error) {
 	for r.Next() {
 		var nw Warehouses
 
-		if err = r.Scan(&nw.Id, &nw.Addr, &nw.Identifier); err != nil {
+		if err = r.Scan(&nw.Id, &nw.Addr, &nw.Warehouse_id); err != nil {
 			return nil, err
 		}
 
-		newSl = append(newSl, Warehouses{nw.Id, nw.Addr, nw.Identifier})
+		newSl = append(newSl, Warehouses{nw.Id, nw.Addr, nw.Warehouse_id})
 	}
 
 	return newSl, nil

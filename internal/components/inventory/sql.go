@@ -6,8 +6,13 @@ import (
 )
 
 var (
-	priceIndication   = `UPDATE Inventory SET price = $1 WHERE warehouse_id = $2 AND product_id = $3`
-	updateQuantity    = `UPDATE Inventory SET quantity = $1 WHERE warehouse_id = $2 AND product_id = $3`
+	exists          = `SELECT EXISTS(SELECT 1 FROM Inventory WHERE warehouse_id = $1 AND product_id = $2)`
+	existsWarehouse = `SELECT EXISTS(SELECT 1 FROM Inventory WHERE warehouse_id = $1)`
+	priceInsert     = `INSERT INTO Inventory (warehouse_id, product_id, quantity, price, discount) VALUES ($1, $2, $3, $4, $5)`
+	priceUpdate     = `UPDATE Inventory SET price = $1 WHERE warehouse_id = $2 AND product_id = $3`
+	updateQuantity  = ` UPDATE Inventory 
+	SET quantity = quantity + $1
+	WHERE warehouse_id = $2 AND product_id = $3`
 	creatingADiscount = `UPDATE Inventory SET discount = $1 WHERE warehouse_id = $2 AND product_id = $3`
 	listOfGoods       = `SELECT 
     p.name, 
@@ -71,16 +76,38 @@ type NewProd struct {
 	Quantity int
 }
 
-func (s *InventoryService) ConnectingTable(price Inventory) error {
+func (s *InventoryService) SetPriceDB(price Inventory) error {
 
-	if _, err := s.Db.Exec(context.Background(), priceIndication, price.Price, price.Warehouse_id, price.Product_id); err != nil {
+	var exist bool
+
+	if err := s.Db.QueryRow(context.Background(), exists, price.Warehouse_id, price.Product_id).Scan(&exist); err != nil {
 		return err
+	}
+
+	if exist {
+		if _, err := s.Db.Exec(context.Background(), priceUpdate, price.Price, price.Warehouse_id, price.Product_id); err != nil {
+			return err
+		}
+	} else {
+		if _, err := s.Db.Exec(context.Background(), priceInsert, price.Warehouse_id, price.Product_id, 0, price.Price, 0); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
 func (s *InventoryService) UpdateQuantity(inventory Inventory) error {
+
+	var exist bool
+
+	if err := s.Db.QueryRow(context.Background(), exists, inventory.Warehouse_id, inventory.Product_id).Scan(&exist); err != nil {
+		return err
+	}
+
+	if !exist {
+		return fmt.Errorf("Товар не найден")
+	}
 
 	if _, err := s.Db.Exec(context.Background(), updateQuantity, inventory.Quantity, inventory.Warehouse_id, inventory.Product_id); err != nil {
 		return err
@@ -89,16 +116,38 @@ func (s *InventoryService) UpdateQuantity(inventory Inventory) error {
 	return nil
 }
 
-func (s *InventoryService) CreatingADiscount(discount Inventory) error {
+func (s *InventoryService) CreatingADiscount(discount NewInventoryDiscount) error {
 
-	if _, err := s.Db.Exec(context.Background(), creatingADiscount, discount.Discount, discount.Warehouse_id, discount.Product_id); err != nil {
+	var exist bool
+
+	if err := s.Db.QueryRow(context.Background(), existsWarehouse, discount.Warehouse_id).Scan(&exist); err != nil {
 		return err
+	}
+
+	if !exist {
+		return fmt.Errorf("Склад не найден")
+	}
+
+	for _, el := range discount.Product_id {
+		if _, err := s.Db.Exec(context.Background(), creatingADiscount, discount.Discount, discount.Warehouse_id, el); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
 func (s *InventoryService) List(product Inventory, perPage int, offset int) ([]ListByWarehouse, error) {
+
+	var exist bool
+
+	if err := s.Db.QueryRow(context.Background(), existsWarehouse, product.Warehouse_id).Scan(&exist); err != nil {
+		return nil, err
+	}
+
+	if !exist {
+		return nil, fmt.Errorf("Склад не найден")
+	}
 
 	r, err := s.Db.Query(context.Background(), listOfGoods, product.Warehouse_id, perPage, offset)
 	if err != nil {
@@ -123,6 +172,16 @@ func (s *InventoryService) List(product Inventory, perPage int, offset int) ([]L
 }
 
 func (s *InventoryService) ListProduct(product Inventory) (AllInformationAboutTheProduct, error) {
+
+	var exist bool
+
+	if err := s.Db.QueryRow(context.Background(), exists, product.Warehouse_id, product.Product_id).Scan(&exist); err != nil {
+		return AllInformationAboutTheProduct{}, err
+	}
+
+	if !exist {
+		return AllInformationAboutTheProduct{}, fmt.Errorf("Товар не найден")
+	}
 
 	r, err := s.Db.Query(context.Background(), listProduct, product.Warehouse_id, product.Product_id)
 	if err != nil {
@@ -161,6 +220,16 @@ func (s *InventoryService) ListCount(count Inventory) (SummingUp, error) {
 }
 
 func (s *InventoryService) Purchase(purchase NewInventory) error {
+
+	var exist bool
+
+	if err := s.Db.QueryRow(context.Background(), existsWarehouse, purchase.Warehouse_id).Scan(&exist); err != nil {
+		return err
+	}
+
+	if !exist {
+		return fmt.Errorf("Склад не найден")
+	}
 
 	r, err := s.Db.Query(context.Background(), quantityCheck, purchase.Quantity)
 	if err != nil {

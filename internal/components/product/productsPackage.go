@@ -3,30 +3,28 @@ package product
 import (
 	"apiGo/internal/components"
 	"net/http"
-	"strconv"
 
 	"go.uber.org/zap"
 )
 
 type Products struct {
-	Identifier  string          `json:"identifier"`
-	Name        string          `json:"name"`
-	Description string          `json:"description"`
-	KeyValue    map[uint]string `json:"keyvalue"`
-	Weight      string          `json:"weight"`
-	Barcode     string          `json:"barcode"`
+	Product_id  string            `json:"product_id"`
+	Name        string            `json:"name"`
+	Description string            `json:"description"`
+	KeyValue    map[string]string `json:"keyvalue,omitempty"`
+	Weight      string            `json:"weight,omitempty"`
+	Barcode     string            `json:"barcode,omitempty"`
 }
 
 type InventoryService struct {
-    *components.Settings
+	*components.Settings
 }
 
-
 func (s *InventoryService) DisplayAllProducts(w http.ResponseWriter, r *http.Request) {
-	
+
 	prod, err := s.DisplayProducts()
 	if err != nil {
-		s.Logger.Error("Ошибка в выведении всех товаров")
+		s.Logger.Error("Ошибка в выведении всех товаров", zap.Error(err))
 		return
 	}
 
@@ -67,13 +65,6 @@ func (s *InventoryService) AddingNewProducts(w http.ResponseWriter, r *http.Requ
 
 func (s *InventoryService) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 
-	identifier, err := strconv.Atoi(r.URL.Query().Get("id"))
-	if err != nil || identifier < 1 {
-		http.NotFound(w, r)
-		s.Logger.Error("Такого identifier не найдено")
-		return
-	}
-
 	var products Products
 
 	if err := components.NewDec(r, &products); err != nil {
@@ -81,7 +72,7 @@ func (s *InventoryService) UpdateProduct(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if err := s.UpdateProd(products, identifier); err != nil {
+	if err := s.UpdateProd(products); err != nil {
 		s.Logger.Error(err.Error())
 		return
 	}
