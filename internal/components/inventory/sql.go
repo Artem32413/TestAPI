@@ -10,79 +10,82 @@ var (
 	existsWarehouse = `SELECT EXISTS(SELECT 1 FROM Inventory WHERE warehouse_id = $1)`
 	priceInsert     = `INSERT INTO Inventory (warehouse_id, product_id, quantity, price, discount) VALUES ($1, $2, $3, $4, $5)`
 	priceUpdate     = `UPDATE Inventory SET price = $1 WHERE warehouse_id = $2 AND product_id = $3`
-	updateQuantity  = ` UPDATE Inventory 
-	SET quantity = quantity + $1
-	WHERE warehouse_id = $2 AND product_id = $3`
+	updateQuantity  = `UPDATE Inventory 
+						SET quantity = quantity + $1
+						WHERE warehouse_id = $2 AND product_id = $3`
 	creatingADiscount = `UPDATE Inventory SET discount = $1 WHERE warehouse_id = $2 AND product_id = $3`
 	listOfGoods       = `SELECT 
-    p.name, 
-    p.description, 
-    i.price, 
-    i.discount,
-    (i.price * (1 - COALESCE(i.discount, 0) / 100)) AS discounted_price
-FROM Inventory i
-JOIN Products p ON i.product_id = p.id
-WHERE i.warehouse_id = $1
-ORDER BY p.name
-LIMIT $2 OFFSET (($3 - 1) * $2)`
-	listProduct = `SELECT * FROM Inventory WHERE warehouse_id = $1 AND product_id = $2`
-	listCount   = `WITH product_data AS (
-        SELECT 
-            i.product_id,
-            i.price, 
-            i.discount,
-            (i.price * (1 - COALESCE(i.discount, 0) / 100)) AS discounted_price
-        FROM inventory i
-        WHERE i.warehouse_id = $1 AND i.product_id = ANY($2)
-    )
-    SELECT 
-        pd.product_id,
-        pd.price,
-        pd.discounted_price,
-        p.quantity,
-        CASE 
-            WHEN pd.discounted_price > 0 THEN pd.discounted_price * p.quantity
-            ELSE pd.price * p.quantity
-        END AS subtotal
-    FROM unnest($3::int[]) AS p(product_id, quantity)
-    JOIN product_data pd ON pd.product_id = p.product_id`
-	quantityCheck   = `SELECT quantity FROM Inventory WHERE quantity = $1`
-	purchaseProduct = `UPDATE Inventory SET quantity = $1 WHERE warehouse_id = $2 AND product_id = $3`
+						p.product_id,
+						p.name,
+						i.price,
+						ROUND(i.price * (1 - i.discount/100), 2) as discounted_price
+						FROM inventory i
+						JOIN products p ON i.product_id = p.product_id
+						WHERE i.warehouse_id = $1
+						LIMIT $2 OFFSET $3`
+	listInventory = `SELECT 
+						COALESCE(quantity, 0) AS quantity,
+						COALESCE(price, 0) AS price,
+						COALESCE(discount, 0) AS discount 
+						FROM Inventory 
+						WHERE warehouse_id = $1 AND product_id = $2`
+	oneProduct = `SELECT 
+					p.product_id,
+					p.name,
+					p.description,
+					p.weight,
+					p.barcode
+						FROM 
+					Products p
+					WHERE product_id = $1`
+	listCount = `SELECT COALESCE(SUM(i.price * p.quantity * (1 - i.discount/100)), 0)
+					FROM unnest($1::text[], $2::int[]) AS p(product_id, quantity)
+					JOIN inventory i ON i.product_id = p.product_id AND i.warehouse_id = $3
+					WHERE i.quantity >= p.quantity`
+	quantityCheck = `SELECT quantity FROM Inventory 
+						WHERE warehouse_id = $1 AND product_id = $2`
+	purchaseProduct = `UPDATE Inventory 
+						SET quantity = quantity - $1 
+						WHERE warehouse_id = $2 AND product_id = $3`
 )
 
 type ListByWarehouse struct {
-	Identifier string  `json:"identifier"`
+	Product_id string  `json:"product_id"`
 	Name       string  `json:"name"`
 	Price      float64 `json:"price"`
 	Discount   float64 `json:"discount"`
 }
 
 type AllInformationAboutTheProduct struct {
-	Identifier      string  `json:"identifier"`
-	Name            string  `json:"name"`
-	Description     string  `json:"description"`
-	Characteristics string  `json:"characteristics"`
-	Barcode         string  `json:"barcode"`
-	Price           float64 `json:"price"`
-	Discount        float64 `json:"discount"`
-	Quantity        int     `json:"quantity"`
+	Product_id      string              `json:"product_id"`
+	Name            string              `json:"name"`
+	Description     string              `json:"description"`
+	Characteristics []map[string]string `json:"characteristics,omitempty"`
+	Barcode         string              `json:"barcode"`
+	Price           float64             `json:"price"`
+	Discount        float64             `json:"discount"`
+	Quantity        int                 `json:"quantity"`
+	Weight          float64             `json:"weight"`
+}
+
+type NewInventory2 struct {
+	WarehouseID string             `json:"warehouse_id"`
+	Products    []ProductInventory `json:"product"`
+}
+
+type ProductInventory struct {
+	ProductID string `json:"product_id"`
+	Quantity  int    `json:"quantity"`
 }
 
 type SummingUp struct {
-	Sum float64 `json:"sum"`
-}
-
-type NewProd struct {
-	Quantity int
+	Sum             float64           `json:"sum"`
+	Characteristics map[string]string `json:"characteristics,omitempty"`
 }
 
 func (s *InventoryService) SetPriceDB(price Inventory) error {
 
-	var exist bool
-
-	if err := s.Db.QueryRow(context.Background(), exists, price.Warehouse_id, price.Product_id).Scan(&exist); err != nil {
-		return err
-	}
+	exist := s.Exists(1, price, NewInventoryDiscount{}, NewInventory{}, WarehousePagination{})
 
 	if exist {
 		if _, err := s.Db.Exec(context.Background(), priceUpdate, price.Price, price.Warehouse_id, price.Product_id); err != nil {
@@ -99,11 +102,7 @@ func (s *InventoryService) SetPriceDB(price Inventory) error {
 
 func (s *InventoryService) UpdateQuantity(inventory Inventory) error {
 
-	var exist bool
-
-	if err := s.Db.QueryRow(context.Background(), exists, inventory.Warehouse_id, inventory.Product_id).Scan(&exist); err != nil {
-		return err
-	}
+	exist := s.Exists(1, inventory, NewInventoryDiscount{}, NewInventory{}, WarehousePagination{})
 
 	if !exist {
 		return fmt.Errorf("Товар не найден")
@@ -118,11 +117,7 @@ func (s *InventoryService) UpdateQuantity(inventory Inventory) error {
 
 func (s *InventoryService) CreatingADiscount(discount NewInventoryDiscount) error {
 
-	var exist bool
-
-	if err := s.Db.QueryRow(context.Background(), existsWarehouse, discount.Warehouse_id).Scan(&exist); err != nil {
-		return err
-	}
+	exist := s.Exists(3, Inventory{}, discount, NewInventory{}, WarehousePagination{})
 
 	if !exist {
 		return fmt.Errorf("Склад не найден")
@@ -137,121 +132,146 @@ func (s *InventoryService) CreatingADiscount(discount NewInventoryDiscount) erro
 	return nil
 }
 
-func (s *InventoryService) List(product Inventory, perPage int, offset int) ([]ListByWarehouse, error) {
+func (s *InventoryService) ListProductsByWarehouse(warehouse WarehousePagination) ([]ListByWarehouse, error) {
 
-	var exist bool
-
-	if err := s.Db.QueryRow(context.Background(), existsWarehouse, product.Warehouse_id).Scan(&exist); err != nil {
-		return nil, err
-	}
+	exist := s.Exists(5, Inventory{}, NewInventoryDiscount{}, NewInventory{}, warehouse)
 
 	if !exist {
-		return nil, fmt.Errorf("Склад не найден")
+		return nil, fmt.Errorf("склад с ID %s не найден", warehouse.Warehouse_id)
 	}
 
-	r, err := s.Db.Query(context.Background(), listOfGoods, product.Warehouse_id, perPage, offset)
+	rows, err := s.Db.Query(
+		context.Background(),
+		listOfGoods,
+		warehouse.Warehouse_id,
+		warehouse.Limit,
+		warehouse.Offset,
+	)
+
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("ошибка выполнения запроса: %w", err)
 	}
 
-	var newL []ListByWarehouse
+	defer rows.Close()
 
-	for r.Next() {
+	var products []ListByWarehouse
 
-		var n ListByWarehouse
+	for rows.Next() {
+		var p ListByWarehouse
 
-		err = r.Scan(&n.Identifier, &n.Name, &n.Price, &n.Discount)
+		err := rows.Scan(
+			&p.Product_id,
+			&p.Name,
+			&p.Price,
+			&p.Discount,
+		)
+
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("ошибка сканирования данных: %w", err)
 		}
 
-		newL = append(newL, n)
+		products = append(products, p)
 	}
 
-	return newL, nil
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("ошибка при обработке результатов: %w", err)
+	}
+
+	return products, nil
 }
 
 func (s *InventoryService) ListProduct(product Inventory) (AllInformationAboutTheProduct, error) {
 
-	var exist bool
-
-	if err := s.Db.QueryRow(context.Background(), exists, product.Warehouse_id, product.Product_id).Scan(&exist); err != nil {
-		return AllInformationAboutTheProduct{}, err
-	}
+	exist := s.Exists(1, product, NewInventoryDiscount{}, NewInventory{}, WarehousePagination{})
 
 	if !exist {
 		return AllInformationAboutTheProduct{}, fmt.Errorf("Товар не найден")
 	}
 
-	r, err := s.Db.Query(context.Background(), listProduct, product.Warehouse_id, product.Product_id)
-	if err != nil {
-		return AllInformationAboutTheProduct{}, err
-	}
-
 	var n AllInformationAboutTheProduct
 
-	for r.Next() {
-		err = r.Scan(&n.Identifier, &n.Name, &n.Description, &n.Characteristics, &n.Barcode, &n.Price, &n.Discount, &n.Quantity)
-		if err != nil {
-			return AllInformationAboutTheProduct{}, err
-		}
+	err := s.Db.QueryRow(context.Background(), listInventory, product.Warehouse_id, product.Product_id).Scan(&n.Price, &n.Discount, &n.Quantity)
+	if err != nil {
+		return AllInformationAboutTheProduct{}, fmt.Errorf("Ошибка с запросом остатка %w", err)
+	}
+
+	err = s.Db.QueryRow(context.Background(), oneProduct, product.Product_id).Scan(&n.Product_id, &n.Name, &n.Description, &n.Weight, &n.Barcode)
+	if err != nil {
+		return AllInformationAboutTheProduct{}, fmt.Errorf("Ошибка с запросом товара %w", err)
+	}
+
+	attrs, err := s.GetAllAttributes([]string{n.Product_id})
+	if err != nil {
+		return n, fmt.Errorf("ошибка получения характеристик: %w", err)
+	}
+
+	if productAttrs, exists := attrs[n.Product_id]; exists {
+		n.Characteristics = convertAttributesToSlice(productAttrs)
 	}
 
 	return n, nil
 }
 
-func (s *InventoryService) ListCount(count Inventory) (SummingUp, error) {
+func (s *InventoryService) ListCount(count NewInventory) (SummingUp, error) {
+	var result SummingUp
 
-	r, err := s.Db.Query(context.Background(), listCount, count.Warehouse_id, count.Product_id, count.Quantity)
+	exist := s.Exists(4, Inventory{}, NewInventoryDiscount{}, count, WarehousePagination{})
+
+	if !exist {
+		return result, fmt.Errorf("склад с ID %s не найден", count.Warehouse_id)
+	}
+
+	if len(count.Product) == 0 {
+		return result, fmt.Errorf("список товаров не может быть пустым")
+	}
+
+	productIDs, quantities := Slices(count)
+
+	err := s.Db.QueryRow(
+		context.Background(),
+		listCount,
+		productIDs,
+		quantities,
+		count.Warehouse_id,
+	).Scan(&result.Sum)
+
 	if err != nil {
-		return SummingUp{}, err
+		return result, fmt.Errorf("ошибка расчета суммы: %w", err)
 	}
 
-	var n SummingUp
-
-	for r.Next() {
-		err = r.Scan(&n.Sum)
-		if err != nil {
-			return SummingUp{}, err
-		}
-	}
-
-	return n, nil
+	return result, nil
 }
 
 func (s *InventoryService) Purchase(purchase NewInventory) error {
 
-	var exist bool
-
-	if err := s.Db.QueryRow(context.Background(), existsWarehouse, purchase.Warehouse_id).Scan(&exist); err != nil {
-		return err
-	}
+	exist := s.Exists(4, Inventory{}, NewInventoryDiscount{}, purchase, WarehousePagination{})
 
 	if !exist {
 		return fmt.Errorf("Склад не найден")
 	}
 
-	r, err := s.Db.Query(context.Background(), quantityCheck, purchase.Quantity)
-	if err != nil {
-		return err
-	}
+	productIDs, quantities := Slices(purchase)
 
-	var sale NewProd
+	var quantity int
 
-	if r.Next() {
-		if err = r.Scan(sale.Quantity); err != nil {
-			return err
+	for _, product_id := range productIDs {
+		err := s.Db.QueryRow(context.Background(), quantityCheck, purchase.Warehouse_id, product_id).Scan(&quantity)
+		if err != nil {
+			return fmt.Errorf("Ошибка проверки количества: %w", err)
 		}
-	} else {
-		return fmt.Errorf("На складе отсутствует товар")
 	}
 
-	if purchase.Quantity > sale.Quantity {
-		return fmt.Errorf("Товар отсутствует или это количество товара на складе отсутствует")
+	for i, el := range quantities {
+		if el > quantity {
+			return fmt.Errorf("Товар под номером %d отсутствует или это количество товара на складе отсутствует", i)
+		}
 	}
+	for i, q := range quantities {
+		pr := productIDs[i]
 
-	if _, err := s.Db.Exec(context.Background(), purchaseProduct, purchase.Quantity, purchase.Warehouse_id, purchase.Product_id); err != nil {
-		return err
+		if _, err := s.Db.Exec(context.Background(), purchaseProduct, q, purchase.Warehouse_id, pr); err != nil {
+			return fmt.Errorf("Ошибка в списании товара со склада: %w", err)
+		}
 	}
 
 	return nil

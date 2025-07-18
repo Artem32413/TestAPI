@@ -53,18 +53,27 @@ func (s *InventoryService) DisplayProducts() ([]Products, error) {
 		productIDs = append(productIDs, p.Product_id)
 	}
 
-	attrs, err := s.getAllAttributes(productIDs)
+	attrs, err := s.GetAllAttributes(productIDs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get attributes: %w", err)
 	}
 
 	for i := range products {
-		products[i].KeyValue = attrs[products[i].Product_id]
+		if productAttrs, exists := attrs[products[i].Product_id]; exists {
+			products[i].KeyValue = convertMapToSlice(productAttrs)
+		}
 	}
 
 	return products, nil
 }
-func (s *InventoryService) getAllAttributes(productIDs []string) (map[string]map[string]string, error) {
+func convertMapToSlice(attrs map[string]string) []map[string]string {
+	var result []map[string]string
+	for key, value := range attrs {
+		result = append(result, map[string]string{key: value})
+	}
+	return result
+}
+func (s *InventoryService) GetAllAttributes(productIDs []string) (map[string]map[string]string, error) {
 	if len(productIDs) == 0 {
 		return make(map[string]map[string]string), nil
 	}
@@ -103,7 +112,7 @@ func (s *InventoryService) AdditionProducts(products Products) error {
 	err := s.Db.QueryRow(context.Background(), productCheckIns, products.Name).Scan(&exists)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("Ошибка в сканировании: %w", err)
 	}
 
 	if exists {
@@ -111,17 +120,20 @@ func (s *InventoryService) AdditionProducts(products Products) error {
 	}
 
 	if _, err := s.Db.Exec(context.Background(), addingAProducts, products.Product_id, products.Name, products.Description, products.Weight, products.Barcode); err != nil {
-		return err
+		return fmt.Errorf("Ошибка с добавлением товара: %w", err)
 	}
 
 	if _, err := s.Db.Exec(context.Background(), deleteKeyValue, products.Product_id); err != nil {
-		return err
+		return fmt.Errorf("Ошибка с удалением ключ значения: %w", err)
 	}
 
-	for key, value := range products.KeyValue {
-		if _, err := s.Db.Exec(context.Background(), addingKeyValue, products.Product_id, key, value); err != nil {
-			return err
+	for _, m := range products.KeyValue {
+		for key, value := range m {
+			if _, err := s.Db.Exec(context.Background(), addingKeyValue, products.Product_id, key, value); err != nil {
+				return fmt.Errorf("Ошибка в добавлении ключ значения в бд: %w", err)
+			}
 		}
+
 	}
 	return nil
 }

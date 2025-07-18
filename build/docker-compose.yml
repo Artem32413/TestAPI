@@ -45,7 +45,7 @@ services:
         condition: service_completed_successfully
     environment:
       DATABASE_URL: "postgres://postgres:postgres@db:5432/postgres?sslmode=disable"
-     
+      WAIT_FOR_DB: "true"
     ports:
       - "8080:8080"
     restart: unless-stopped

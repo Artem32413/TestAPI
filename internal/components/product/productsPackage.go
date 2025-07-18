@@ -8,12 +8,12 @@ import (
 )
 
 type Products struct {
-	Product_id  string            `json:"product_id"`
-	Name        string            `json:"name"`
-	Description string            `json:"description"`
-	KeyValue    map[string]string `json:"keyvalue,omitempty"`
-	Weight      string            `json:"weight,omitempty"`
-	Barcode     string            `json:"barcode,omitempty"`
+	Product_id  string              `json:"product_id"`
+	Name        string              `json:"name"`
+	Description string              `json:"description"`
+	KeyValue    []map[string]string `json:"keyvalue,omitempty"`
+	Weight      string              `json:"weight,omitempty"`
+	Barcode     string              `json:"barcode,omitempty"`
 }
 
 type InventoryService struct {

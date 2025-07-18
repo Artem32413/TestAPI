@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS Products (
     product_id VARCHAR(255) NOT NULL UNIQUE,
     name VARCHAR(255) NOT NULL,
     description TEXT,
-    weight VARCHAR(50),
+    weight NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
     barcode VARCHAR(255) UNIQUE
 );
 

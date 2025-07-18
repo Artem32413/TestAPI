@@ -7,6 +7,12 @@ import (
 	"go.uber.org/zap"
 )
 
+type WarehousePagination struct {
+	Warehouse_id string `json:"warehouse_id"`
+	Limit        int    `json:"limit"`  //Количество элементов в блоке
+	Offset       int    `json:"offset"` //Номер блока
+}
+
 type Inventory struct {
 	Warehouse_id string  `json:"warehouse_id"`
 	Product_id   string  `json:"product_id"`
@@ -16,15 +22,19 @@ type Inventory struct {
 }
 
 type NewInventory struct {
-	Warehouse_id string   `json:"warehouse_id"`
-	Product_id   []string `json:"product_id"`
-	Quantity     int      `json:"quantity"`
+	Warehouse_id string              `json:"warehouse_id"`
+	Product      []ProductInventory2 `json:"product"`
 }
 
 type NewInventoryDiscount struct {
 	Warehouse_id string   `json:"warehouse_id"`
 	Product_id   []string `json:"product_id"`
 	Discount     float64  `json:"discount"`
+}
+
+type ProductInventory2 struct {
+	Product_id string `json:"product_id"`
+	Quantity   int    `json:"quantity"`
 }
 
 type InventoryService struct {
@@ -83,14 +93,14 @@ func (s *InventoryService) DiscountInventory(w http.ResponseWriter, r *http.Requ
 }
 
 func (s *InventoryService) ListOfGoods(w http.ResponseWriter, r *http.Request) {
-	var product Inventory
+	var product WarehousePagination
 
 	if err := components.NewDec(r, &product); err != nil {
 		s.Logger.Error(err.Error())
 		return
 	}
 
-	res, err := s.List(product, 1, 2)
+	res, err := s.ListProductsByWarehouse(product)
 	if err != nil {
 		s.Logger.Error(err.Error())
 		return
@@ -139,7 +149,7 @@ func (s *InventoryService) ReceivingGoods(w http.ResponseWriter, r *http.Request
 }
 
 func (s *InventoryService) CountPrice(w http.ResponseWriter, r *http.Request) {
-	var count Inventory
+	var count NewInventory
 
 	if err := components.NewDec(r, &count); err != nil {
 		s.Logger.Error(err.Error())
