@@ -26,34 +26,30 @@ func (s *InventoryService) AnalyticsAll(w http.ResponseWriter, r *http.Request) 
 	var a Analytics
 
 	if err := components.NewDec(r, &a); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		s.Logger.Error(err.Error())
-		w.Write([]byte(err.Error()))
 		return
 	}
 
 	res, err := s.DisplayAllAnalytics(a)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		s.Logger.Error(err.Error())
-		w.Write([]byte(err.Error()))
 		return
 	}
 
 	jsData, err := components.NewMarshall(res)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		s.Logger.Error("Ошибка в преобразовании JSON (Склады)")
-		w.Write([]byte(err.Error()))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 
 	if _, err := w.Write(jsData); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		s.Logger.Error("Ошибка в выводе данных (Склады)")
-		w.Write([]byte(err.Error()))
 		return
 	}
 }
@@ -61,26 +57,23 @@ func (s *InventoryService) AnalyticsAll(w http.ResponseWriter, r *http.Request) 
 func (s *InventoryService) Top(w http.ResponseWriter, r *http.Request) {
 	res, err := s.DisplayTop()
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		s.Logger.Error(err.Error())
-		w.Write([]byte(err.Error()))
 		return
 	}
 
 	jsData, err := components.NewMarshall(res)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		s.Logger.Error("Ошибка в преобразовании JSON (Склады)")
-		w.Write([]byte(err.Error()))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 
 	if _, err := w.Write(jsData); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		s.Logger.Error("Ошибка в выводе данных (Склады)")
-		w.Write([]byte(err.Error()))
 		return
 	}
 }
