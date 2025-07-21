@@ -1,80 +1,97 @@
 package analytics
 
-import "context"
+import (
+	"context"
+	"fmt"
+)
 
 var (
 	// Аналитика
-	productAnalytics = `
-SELECT 
-    p.product_id,
-    p.name,
-    p.barcode,
-    SUM(a.sold_goods) AS total_sold,
-    SUM(a.total_sum) AS total_sum,
-    w.identifier AS warehouse_identifier,
-    w.addr AS warehouse_address
-FROM 
-    analytics a
-JOIN 
-    products p ON a.product_id = p.product_id
-JOIN 
-    warehouses w ON a.warehouse_id = w.identifier
-GROUP BY 
-    p.product_id, p.name, p.barcode, w.identifier, w.addr
-`
-
+	existsWarehouse  = `SELECT EXISTS(SELECT 1 FROM Inventory WHERE warehouse_id = $1)`
+	productAnalytics = `SELECT 
+						product_id,
+						SUM(sold_goods) AS total_sold,
+						SUM(total_sum) AS total_revenue
+						FROM 
+							Analytics
+						WHERE 
+							warehouse_id = $1
+						GROUP BY 
+							product_id
+						ORDER BY 
+							total_revenue DESC;`
 	topWarehouses = `
-SELECT 
-    w.identifier,
-    w.addr,
-    SUM(a.total_sum) AS total_revenue
-FROM 
-    warehouses w
-JOIN 
-    analytics a ON w.identifier = a.warehouse_id
-GROUP BY 
-    w.identifier, w.addr
-ORDER BY 
-    total_revenue DESC
-LIMIT 10
-`
+						SELECT 
+						w.warehouse_id,
+						w.addr,
+						SUM(a.total_sum) AS total_revenue
+					FROM 
+						WarehousesTable w
+					JOIN 
+						Analytics a ON w.warehouse_id = a.warehouse_id
+					GROUP BY 
+						w.warehouse_id, w.addr
+					ORDER BY 
+						total_revenue DESC
+					LIMIT 10;
+						`
 )
 
-func (s *InventoryService) DisplayAllAnalytics() ([]Analytics, error) {
-	r, err := s.Db.Query(context.Background(), productAnalytics)
-	if err != nil {
-		return nil, err
+func (s *InventoryService) DisplayAllAnalytics(str Analytics) ([]Analytics, error) {
+	var exist bool
+
+	if err := s.Db.QueryRow(context.Background(), existsWarehouse, str.Warehouse_id).Scan(&exist); err != nil {
+		s.Logger.Error("Ошибка в проверке на существование склада")
 	}
 
-	var slAnalytic []Analytics
+	if !exist {
+		return nil, fmt.Errorf("Склад не найден")
+	}
+
+	r, err := s.Db.Query(context.Background(), productAnalytics, str.Warehouse_id)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка выполнения запроса аналитики: %w", err)
+	}
+
+	defer r.Close()
+
+	var a []Analytics
 
 	for r.Next() {
-		var a Analytics
-		if err = r.Scan(&a.Warehouse_id, &a.Product_id, &a.SoldGoods, &a.TotalSum); err != nil {
-			return nil, err
+		var NewAnalytics Analytics
+
+		err = r.Scan(
+			&NewAnalytics.Warehouse_id,
+			&NewAnalytics.Product_id,
+			&NewAnalytics.SoldGoods,
+			&NewAnalytics.TotalSum,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("ошибка сканирования данных аналитики: %w", err)
 		}
 
-		slAnalytic = append(slAnalytic, Analytics{a.Warehouse_id, a.Product_id, a.SoldGoods, a.TotalSum})
+		a = append(a, NewAnalytics)
 	}
 
-	return slAnalytic, nil
+	return a, nil
 }
 
-func (s *InventoryService) DisplayTop() ([]Analytics, error) {
+func (s *InventoryService) DisplayTop() ([]TopAnalytics, error) {
 	r, err := s.Db.Query(context.Background(), topWarehouses)
 	if err != nil {
 		return nil, err
 	}
 
-	var slAnalytic []Analytics
+	var slAnalytic []TopAnalytics
 
 	for r.Next() {
-		var a Analytics
-		if err = r.Scan(&a.Warehouse_id, &a.Product_id, &a.SoldGoods, &a.TotalSum); err != nil {
+		var a TopAnalytics
+		if err = r.Scan(&a.Addr, &a.Warehouse_id, &a.TotalSum); err != nil {
 			return nil, err
 		}
 
-		slAnalytic = append(slAnalytic, Analytics{a.Warehouse_id, a.Product_id, a.SoldGoods, a.TotalSum})
+		slAnalytic = append(slAnalytic, TopAnalytics{a.Addr, a.Warehouse_id, a.TotalSum})
 	}
 
 	return slAnalytic, nil

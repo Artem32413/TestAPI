@@ -25,6 +25,8 @@ func (s *InventoryService) DisplayAllProducts(w http.ResponseWriter, r *http.Req
 	prod, err := s.DisplayProducts()
 	if err != nil {
 		s.Logger.Error("Ошибка в выведении всех товаров", zap.Error(err))
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -32,6 +34,8 @@ func (s *InventoryService) DisplayAllProducts(w http.ResponseWriter, r *http.Req
 
 	if err != nil {
 		s.Logger.Error("Ошибка в преобразовании JSON (Товары)", zap.Error(err))
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -39,6 +43,8 @@ func (s *InventoryService) DisplayAllProducts(w http.ResponseWriter, r *http.Req
 
 	if _, err := w.Write(jsData); err != nil {
 		s.Logger.Error("Ошибка в выводе данных (Товары)", zap.Error(err))
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -52,11 +58,15 @@ func (s *InventoryService) AddingNewProducts(w http.ResponseWriter, r *http.Requ
 
 	if err := components.NewDec(r, &products); err != nil {
 		s.Logger.Error(err.Error())
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	if err := s.AdditionProducts(products); err != nil {
 		s.Logger.Error(err.Error())
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -69,11 +79,15 @@ func (s *InventoryService) UpdateProduct(w http.ResponseWriter, r *http.Request)
 
 	if err := components.NewDec(r, &products); err != nil {
 		s.Logger.Error(err.Error())
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	if err := s.UpdateProd(products); err != nil {
 		s.Logger.Error(err.Error())
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 

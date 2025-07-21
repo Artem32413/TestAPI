@@ -23,7 +23,7 @@ var (
 						JOIN products p ON i.product_id = p.product_id
 						WHERE i.warehouse_id = $1
 						LIMIT $2 OFFSET $3`
-	listInventory = `SELECT 
+	listInventory = `	SELECT 
 						COALESCE(quantity, 0) AS quantity,
 						COALESCE(price, 0) AS price,
 						COALESCE(discount, 0) AS discount 
@@ -35,7 +35,7 @@ var (
 					p.description,
 					p.weight,
 					p.barcode
-						FROM 
+					FROM 
 					Products p
 					WHERE product_id = $1`
 	listCount = `SELECT COALESCE(SUM(i.price * p.quantity * (1 - i.discount/100)), 0)
@@ -47,6 +47,21 @@ var (
 	purchaseProduct = `UPDATE Inventory 
 						SET quantity = quantity - $1 
 						WHERE warehouse_id = $2 AND product_id = $3`
+	purchaseProductAnalytics = `
+								INSERT INTO analytics (warehouse_id, product_id, sold_goods, total_sum)
+								SELECT 
+									$1::text, 
+									$2::text, 
+									$3::integer,
+									$3::integer * (
+										SELECT price * (1 - COALESCE(discount, 0)) 
+										FROM Inventory 
+										WHERE product_id = $2::text
+									)
+								ON CONFLICT (warehouse_id, product_id) 
+								DO UPDATE SET
+									sold_goods = analytics.sold_goods + EXCLUDED.sold_goods,
+									total_sum = analytics.total_sum + EXCLUDED.total_sum`
 )
 
 type ListByWarehouse struct {
@@ -271,6 +286,10 @@ func (s *InventoryService) Purchase(purchase NewInventory) error {
 
 		if _, err := s.Db.Exec(context.Background(), purchaseProduct, q, purchase.Warehouse_id, pr); err != nil {
 			return fmt.Errorf("Ошибка в списании товара со склада: %w", err)
+		}
+
+		if _, err := s.Db.Exec(context.Background(), purchaseProductAnalytics, purchase.Warehouse_id, pr, q); err != nil {
+			return fmt.Errorf("Ошибка в записи данных в аналитику: %w", err)
 		}
 	}
 

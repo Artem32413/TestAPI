@@ -35,10 +35,8 @@ CREATE TABLE IF NOT EXISTS Analytics (
     product_id VARCHAR(255) NOT NULL,
     sold_goods INTEGER NOT NULL DEFAULT 0,
     total_sum NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
-    report_date DATE NOT NULL DEFAULT CURRENT_DATE,
     CONSTRAINT uc_analytics_record UNIQUE (
         warehouse_id,
-        product_id,
-        report_date
+        product_id
     )
 );

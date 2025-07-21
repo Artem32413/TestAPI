@@ -47,11 +47,15 @@ func (s *InventoryService) SetPrice(w http.ResponseWriter, r *http.Request) {
 
 	if err := components.NewDec(r, &price); err != nil {
 		s.Logger.Error(err.Error())
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	if err := s.SetPriceDB(price); err != nil {
 		s.Logger.Error(err.Error())
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -63,11 +67,15 @@ func (s *InventoryService) UpdateInventory(w http.ResponseWriter, r *http.Reques
 
 	if err := components.NewDec(r, &inventory); err != nil {
 		s.Logger.Error(err.Error())
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	if err := s.UpdateQuantity(inventory); err != nil {
 		s.Logger.Error(err.Error())
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -81,11 +89,15 @@ func (s *InventoryService) DiscountInventory(w http.ResponseWriter, r *http.Requ
 
 	if err := components.NewDec(r, &discount); err != nil {
 		s.Logger.Error(err.Error())
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	if err := s.CreatingADiscount(discount); err != nil {
 		s.Logger.Error(err.Error())
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -97,18 +109,24 @@ func (s *InventoryService) ListOfGoods(w http.ResponseWriter, r *http.Request) {
 
 	if err := components.NewDec(r, &product); err != nil {
 		s.Logger.Error(err.Error())
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	res, err := s.ListProductsByWarehouse(product)
 	if err != nil {
 		s.Logger.Error(err.Error())
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	jsData, err := components.NewMarshall(res)
 	if err != nil {
 		s.Logger.Error("Ошибка в преобразовании JSON (Товары со склада)", zap.Error(err))
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -116,6 +134,8 @@ func (s *InventoryService) ListOfGoods(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := w.Write(jsData); err != nil {
 		s.Logger.Error("Ошибка в выводе данных (Товары со склада)", zap.Error(err))
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 }
@@ -125,18 +145,24 @@ func (s *InventoryService) ReceivingGoods(w http.ResponseWriter, r *http.Request
 
 	if err := components.NewDec(r, &product); err != nil {
 		s.Logger.Error(err.Error())
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	res, err := s.ListProduct(product)
 	if err != nil {
 		s.Logger.Error(err.Error())
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	jsData, err := components.NewMarshall(res)
 	if err != nil {
 		s.Logger.Error("Ошибка в преобразовании JSON (Товара со склада)", zap.Error(err))
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -144,6 +170,8 @@ func (s *InventoryService) ReceivingGoods(w http.ResponseWriter, r *http.Request
 
 	if _, err := w.Write(jsData); err != nil {
 		s.Logger.Error("Ошибка в выводе данных (Товара со склада)", zap.Error(err))
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 }
@@ -153,18 +181,24 @@ func (s *InventoryService) CountPrice(w http.ResponseWriter, r *http.Request) {
 
 	if err := components.NewDec(r, &count); err != nil {
 		s.Logger.Error(err.Error())
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	res, err := s.ListCount(count)
 	if err != nil {
 		s.Logger.Error(err.Error())
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	jsData, err := components.NewMarshall(res)
 	if err != nil {
 		s.Logger.Error("Ошибка в преобразовании JSON (Подсчёта)", zap.Error(err))
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -172,6 +206,8 @@ func (s *InventoryService) CountPrice(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := w.Write(jsData); err != nil {
 		s.Logger.Error("Ошибка в выводе данных (Подсчёта)", zap.Error(err))
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 }
@@ -181,11 +217,15 @@ func (s *InventoryService) PurchaseProduct(w http.ResponseWriter, r *http.Reques
 
 	if err := components.NewDec(r, &purchase); err != nil {
 		s.Logger.Error(err.Error())
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	if err := s.Purchase(purchase); err != nil {
 		s.Logger.Error(err.Error())
+		w.Write([]byte(err.Error()))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
