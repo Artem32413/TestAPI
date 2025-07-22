@@ -1,0 +1,597 @@
+basePath: /api/v1
+definitions:
+  analytics.Analytics:
+    description: Структура данных аналитики по продажам товаров на складе
+    properties:
+      product_id:
+        description: Идентификатор товара
+        example: PRD-1001
+        type: string
+      soldgoods:
+        description: Количество проданных товаров
+        example: 50
+        type: integer
+      totalsum:
+        description: Общая сумма продаж
+        example: 12500.5
+        type: number
+      warehouse_id:
+        description: Идентификатор склада
+        example: WH-001
+        type: string
+    type: object
+  analytics.AnalyticsSwagger:
+    properties:
+      warehouse_id:
+        description: Идентификатор склада
+        example: 9be99fa0-2cd1-4c4e-863d-5115095fbd09
+        type: string
+    type: object
+  analytics.TopAnalytics:
+    description: Структура данных топовых складов по выручке
+    properties:
+      addr:
+        description: Адрес склада
+        example: ул. Ленина, 10
+        type: string
+      totalsum:
+        description: Общая выручка склада
+        example: 150000.75
+        type: number
+      warehouse_id:
+        description: Идентификатор склада
+        example: WH-001
+        type: string
+    type: object
+  inventory.AllInformationAboutTheProduct:
+    properties:
+      barcode:
+        type: string
+      characteristics:
+        items:
+          additionalProperties:
+            type: string
+          type: object
+        type: array
+      description:
+        type: string
+      discount:
+        type: number
+      name:
+        type: string
+      price:
+        type: number
+      product_id:
+        type: string
+      quantity:
+        type: integer
+      weight:
+        type: number
+    type: object
+  inventory.InventorySwagger1:
+    properties:
+      price:
+        example: 999.99
+        type: number
+      product_id:
+        example: 36c6ecf5-1e13-4cef-a591-bc8368fa0e60
+        type: string
+      warehouse_id:
+        example: 9be99fa0-2cd1-4c4e-863d-5115095fbd09
+        type: string
+    type: object
+  inventory.InventorySwagger2:
+    properties:
+      product_id:
+        example: 36c6ecf5-1e13-4cef-a591-bc8368fa0e60
+        type: string
+      quantity:
+        example: 5
+        type: integer
+      warehouse_id:
+        example: 9be99fa0-2cd1-4c4e-863d-5115095fbd09
+        type: string
+    type: object
+  inventory.InventorySwagger4:
+    properties:
+      product_id:
+        example: 36c6ecf5-1e13-4cef-a591-bc8368fa0e60
+        type: string
+      warehouse_id:
+        example: 9be99fa0-2cd1-4c4e-863d-5115095fbd09
+        type: string
+    type: object
+  inventory.InventorySwagger5:
+    properties:
+      sum:
+        type: number
+    type: object
+  inventory.ListByWarehouse:
+    properties:
+      discount:
+        type: number
+      name:
+        type: string
+      price:
+        type: number
+      product_id:
+        type: string
+    type: object
+  inventory.NewInventory:
+    description: Данные для создания или обновления инвентарной записи
+    properties:
+      product:
+        items:
+          $ref: '#/definitions/inventory.ProductInventory2'
+        type: array
+      warehouse_id:
+        example: 9be99fa0-2cd1-4c4e-863d-5115095fbd09
+        type: string
+    type: object
+  inventory.NewInventoryDiscount:
+    description: Данные для установки скидки на товары
+    properties:
+      discount:
+        description: Размер скидки (0.2 = 20%)
+        example: 0.2
+        type: number
+      product_id:
+        example:
+        - 881670ed-8195-43d6-b678-3741bd3289ae
+        - 25f8f0ba-75f0-4caa-8648-27f6be3254b3
+        items:
+          type: string
+        type: array
+      warehouse_id:
+        example: 9be99fa0-2cd1-4c4e-863d-5115095fbd09
+        type: string
+    type: object
+  inventory.ProductInventory2:
+    description: Упрощенная структура товара для операций
+    properties:
+      product_id:
+        example: 881670ed-8195-43d6-b678-3741bd3289ae
+        type: string
+      quantity:
+        example: 5
+        type: integer
+    type: object
+  inventory.WarehousePagination:
+    description: Параметры пагинации для списка товаров на складе
+    properties:
+      limit:
+        description: Количество элементов на странице
+        example: 10
+        type: integer
+      offset:
+        description: Смещение (номер страницы * limit)
+        example: 0
+        type: integer
+      warehouse_id:
+        example: 9be99fa0-2cd1-4c4e-863d-5115095fbd09
+        type: string
+    type: object
+  product.Products:
+    description: Основная информация о товаре в системе
+    properties:
+      barcode:
+        description: Штрих-код товара
+        example: "123456789012"
+        type: string
+      description:
+        description: Описание товара
+        example: Флагманский смартфон 2023 года
+        type: string
+      keyvalue:
+        description: Характеристики товара (ключ-значение)
+        items:
+          additionalProperties:
+            type: string
+          type: object
+        type: array
+      name:
+        description: Наименование товара
+        example: Смартфон
+        type: string
+      product_id:
+        description: Уникальный идентификатор товара
+        example: PRD-1001
+        type: string
+      weight:
+        description: Вес товара
+        example: "0.2"
+        type: string
+    type: object
+  warehouse.Warehouses:
+    properties:
+      addr:
+        description: Физический адрес склада
+        example: ул. Складская, д.1
+        type: string
+      id:
+        description: Уникальный идентификатор склада
+        example: 1
+        type: integer
+      warehouse_id:
+        description: Внешний идентификатор склада
+        example: WH-001
+        type: string
+    type: object
+  warehouse.WarehousesSwagger:
+    properties:
+      addr:
+        example: fghverv4446
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@example.com
+    name: API Support
+    url: http://www.example.com/support
+  description: This is a sample API Go server with Zap logging
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: API Go Service
+  version: "1.0"
+paths:
+  /analytics/:
+    post:
+      consumes:
+      - application/json
+      description: Возвращает аналитику продаж по указанным параметрам
+      parameters:
+      - description: Параметры запроса аналитики
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/analytics.AnalyticsSwagger'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешный ответ
+          schema:
+            items:
+              $ref: '#/definitions/analytics.Analytics'
+            type: array
+        "400":
+          description: Ошибка в запросе
+        "500":
+          description: Внутренняя ошибка сервера
+      summary: Получить аналитику продаж
+      tags:
+      - Analytics
+  /analytics/top/:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список складов с наибольшей выручкой
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список топовых складов
+          schema:
+            items:
+              $ref: '#/definitions/analytics.TopAnalytics'
+            type: array
+        "400":
+          description: Ошибка в запросе
+        "500":
+          description: Внутренняя ошибка сервера
+      summary: Получить топ складов по выручке
+      tags:
+      - Analytics
+  /api/health/:
+    get:
+      consumes:
+      - application/json
+      description: Проверяет, что сервис работает и доступен
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Сервис работает
+        "400":
+          description: Неверный запрос
+        "500":
+          description: Внутренняя ошибка сервера
+      summary: Проверка здоровья сервиса
+      tags:
+      - Сервис
+  /inventory/count/:
+    patch:
+      consumes:
+      - application/json
+      description: Возвращает сумму стоимости указанных товаров с учетом скидок
+      parameters:
+      - description: Список товаров для подсчета
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/inventory.NewInventory'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Итоговая стоимость
+          schema:
+            $ref: '#/definitions/inventory.InventorySwagger5'
+        "400":
+          description: Неверно введены данные
+        "500":
+          description: Внутренняя ошибка сервера
+      summary: Подсчет стоимости
+      tags:
+      - Inventory
+  /inventory/discount/:
+    patch:
+      consumes:
+      - application/json
+      description: Устанавливает скидку на указанные товары на складе
+      parameters:
+      - description: Данные для скидки
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/inventory.NewInventoryDiscount'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Скидка успешно применена
+        "400":
+          description: Неверные входные данные
+        "500":
+          description: Внутренняя ошибка сервера
+      summary: Установить скидку
+      tags:
+      - Inventory
+  /inventory/goods/:
+    patch:
+      consumes:
+      - application/json
+      description: Возвращает список товаров на указанном складе с пагинацией
+      parameters:
+      - description: Параметры пагинации
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/inventory.WarehousePagination'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список товаров
+          schema:
+            items:
+              $ref: '#/definitions/inventory.ListByWarehouse'
+            type: array
+        "400":
+          description: Неверные входные данные
+        "500":
+          description: Внутренняя ошибка сервера
+      summary: Список товаров
+      tags:
+      - Inventory
+  /inventory/price/:
+    patch:
+      consumes:
+      - application/json
+      description: Устанавливает цену для конкретного товара на указанном складе
+      parameters:
+      - description: Данные установки цены
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/inventory.InventorySwagger1'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Цена успешно установлена
+        "400":
+          description: Неверные входные данные
+        "500":
+          description: Внутренняя ошибка сервера
+      summary: Установить цену товара
+      tags:
+      - Inventory
+  /inventory/product/:
+    patch:
+      consumes:
+      - application/json
+      description: Возвращает полную информацию о товаре на складе
+      parameters:
+      - description: Идентификаторы склада и товара
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/inventory.InventorySwagger4'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Полная информация о товаре
+          schema:
+            $ref: '#/definitions/inventory.AllInformationAboutTheProduct'
+        "400":
+          description: Неверные входные данные
+        "500":
+          description: Внутренняя ошибка сервера
+      summary: Информация о товаре
+      tags:
+      - Inventory
+  /inventory/purchase/:
+    patch:
+      consumes:
+      - application/json
+      description: Обрабатывает покупку товаров и уменьшает их количество на складе
+      parameters:
+      - description: Данные о покупке
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/inventory.NewInventory'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Покупка успешно обработана
+        "400":
+          description: Неверные входные данные или недостаточно товара
+        "500":
+          description: Внутренняя ошибка сервера
+      summary: Покупка товаров
+      tags:
+      - Inventory
+  /inventory/updateQuantity/:
+    patch:
+      consumes:
+      - application/json
+      description: Увеличивает количество товара на складе
+      parameters:
+      - description: Данные обновления количества
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/inventory.InventorySwagger2'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Количество успешно обновлено
+        "400":
+          description: Неверные входные данные
+        "500":
+          description: Внутренняя ошибка сервера
+      summary: Обновить количество товара
+      tags:
+      - Inventory
+  /products/add/:
+    post:
+      consumes:
+      - application/json
+      description: Создает новую запись товара в системе
+      parameters:
+      - description: Данные нового товара
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/product.Products'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Товар успешно добавлен
+        "400":
+          description: Неверные входные данные
+        "500":
+          description: Внутренняя ошибка сервера
+      summary: Добавить новый товар
+      tags:
+      - Products
+  /products/all/:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список всех товаров в системе без привязки к складам
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список товаров
+          schema:
+            items:
+              $ref: '#/definitions/product.Products'
+            type: array
+        "400":
+          description: Ошибка в запросе
+        "500":
+          description: Внутренняя ошибка сервера
+      summary: Получить все товары
+      tags:
+      - Products
+  /products/update/:
+    put:
+      consumes:
+      - application/json
+      description: Обновляет описание и характеристики существующего товара
+      parameters:
+      - description: Обновленные данные товара
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/product.Products'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Товар успешно обновлен
+        "400":
+          description: Неверные входные данные
+        "404":
+          description: Товар не найден
+        "500":
+          description: Внутренняя ошибка сервера
+      summary: Обновить товар
+      tags:
+      - Products
+  /warehouses/add/:
+    post:
+      consumes:
+      - application/json
+      description: Добавляет новый склад в систему складирования
+      parameters:
+      - description: Данные склада
+        in: body
+        name: warehouse
+        required: true
+        schema:
+          $ref: '#/definitions/warehouse.WarehousesSwagger'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Склад успешно добавлен
+        "400":
+          description: Некорректные входные данные
+        "500":
+          description: Внутренняя ошибка сервера
+      summary: Добавить новый склад
+      tags:
+      - Склады
+  /warehouses/all/:
+    get:
+      description: Возвращает список всех складов в системе
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Список складов
+          schema:
+            items:
+              $ref: '#/definitions/warehouse.Warehouses'
+            type: array
+        "400":
+          description: Ошибка запроса
+        "500":
+          description: Внутренняя ошибка сервера
+      summary: Получить все склады
+      tags:
+      - Склады
+schemes:
+- http
+swagger: "2.0"

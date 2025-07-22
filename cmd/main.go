@@ -1,3 +1,18 @@
+//	@title			API Go Service
+//	@version		1.0
+//	@description	This is a sample API Go server with Zap logging
+
+//	@contact.name	API Support
+//	@contact.url	http://www.example.com/support
+//	@contact.email	support@example.com
+
+//	@license.name	Apache 2.0
+//	@license.url	http://www.apache.org/licenses/LICENSE-2.0.html
+
+//	@host		localhost:8080
+//	@BasePath	/api/v1
+//	@schemes	http
+
 package main
 
 import (
@@ -9,26 +24,27 @@ import (
 	"os/signal"
 
 	"go.uber.org/zap"
+	_ "apiGo/docs"
 )
 
+// @Summary		Запуск приложения
+// @Description	Основная точка входа для API сервиса
 func main() {
 	logger := config.ZapFunc()
 
 	if err := realMain(logger); err != nil {
 		logger.Error(err.Error())
-		return
+		os.Exit(1)
 	}
 }
 
+// realMain содержит основную логику приложения
+//
+//	@Summary		Основная логика приложения
+//	@Description	Инициализирует контекст и запускает API сервер
 func realMain(logger *zap.Logger) error {
-
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
-
 	defer cancel()
 
-	if err := api.StartMain(ctx, logger); err != nil {
-		logger.Error(err.Error())
-	}
-
-	return nil
+	return api.StartMain(ctx, logger)
 }

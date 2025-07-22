@@ -11,7 +11,7 @@ func (s *InventoryService) Exists(a int, value Inventory, value2 NewInventoryDis
 	if a == 1 {
 		if err := s.Db.QueryRow(context.Background(), exists, value.Warehouse_id, value.Product_id).Scan(&exist); err != nil {
 			s.Logger.Error("Ошибка в проверке на существование склада и товара")
-		}	
+		}
 	} else if a == 2 {
 		if err := s.Db.QueryRow(context.Background(), existsWarehouse, value.Warehouse_id).Scan(&exist); err != nil {
 			s.Logger.Error("Ошибка в проверке на существование склада")
@@ -24,7 +24,7 @@ func (s *InventoryService) Exists(a int, value Inventory, value2 NewInventoryDis
 		if err := s.Db.QueryRow(context.Background(), existsWarehouse, value3.Warehouse_id).Scan(&exist); err != nil {
 			s.Logger.Error("Ошибка в проверке на существование склада")
 		}
-	}else{
+	} else {
 		if err := s.Db.QueryRow(context.Background(), existsWarehouse, value4.Warehouse_id).Scan(&exist); err != nil {
 			s.Logger.Error("Ошибка в проверке на существование склада")
 		}
@@ -81,6 +81,6 @@ func Slices(count NewInventory) ([]string, []int) {
 		productIDs[i] = p.Product_id
 		quantities[i] = p.Quantity
 	}
-	
+
 	return productIDs, quantities
 }

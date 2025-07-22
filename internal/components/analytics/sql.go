@@ -9,15 +9,16 @@ var (
 	// Аналитика
 	existsWarehouse  = `SELECT EXISTS(SELECT 1 FROM Inventory WHERE warehouse_id = $1)`
 	productAnalytics = `SELECT 
-						product_id,
-						SUM(sold_goods) AS total_sold,
-						SUM(total_sum) AS total_revenue
+							warehouse_id,
+							product_id,
+							SUM(sold_goods) AS total_sold,
+							SUM(total_sum) AS total_revenue
 						FROM 
 							Analytics
 						WHERE 
 							warehouse_id = $1
 						GROUP BY 
-							product_id
+							warehouse_id, product_id 
 						ORDER BY 
 							total_revenue DESC;`
 	topWarehouses = `

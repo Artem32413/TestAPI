@@ -1,0 +1,885 @@
+{
+    "schemes": [
+        "http"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "This is a sample API Go server with Zap logging",
+        "title": "API Go Service",
+        "contact": {
+            "name": "API Support",
+            "url": "http://www.example.com/support",
+            "email": "support@example.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/api/v1",
+    "paths": {
+        "/analytics/": {
+            "post": {
+                "description": "Возвращает аналитику продаж по указанным параметрам",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Получить аналитику продаж",
+                "parameters": [
+                    {
+                        "description": "Параметры запроса аналитики",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/analytics.AnalyticsSwagger"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешный ответ",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/analytics.Analytics"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка в запросе"
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера"
+                    }
+                }
+            }
+        },
+        "/analytics/top/": {
+            "get": {
+                "description": "Возвращает список складов с наибольшей выручкой",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analytics"
+                ],
+                "summary": "Получить топ складов по выручке",
+                "responses": {
+                    "200": {
+                        "description": "Список топовых складов",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/analytics.TopAnalytics"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка в запросе"
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера"
+                    }
+                }
+            }
+        },
+        "/api/health/": {
+            "get": {
+                "description": "Проверяет, что сервис работает и доступен",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "Сервис"
+                ],
+                "summary": "Проверка здоровья сервиса",
+                "responses": {
+                    "200": {
+                        "description": "Сервис работает"
+                    },
+                    "400": {
+                        "description": "Неверный запрос"
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера"
+                    }
+                }
+            }
+        },
+        "/inventory/count/": {
+            "patch": {
+                "description": "Возвращает сумму стоимости указанных товаров с учетом скидок",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Подсчет стоимости",
+                "parameters": [
+                    {
+                        "description": "Список товаров для подсчета",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/inventory.NewInventory"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Итоговая стоимость",
+                        "schema": {
+                            "$ref": "#/definitions/inventory.InventorySwagger5"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверно введены данные"
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера"
+                    }
+                }
+            }
+        },
+        "/inventory/discount/": {
+            "patch": {
+                "description": "Устанавливает скидку на указанные товары на складе",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Установить скидку",
+                "parameters": [
+                    {
+                        "description": "Данные для скидки",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/inventory.NewInventoryDiscount"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Скидка успешно применена"
+                    },
+                    "400": {
+                        "description": "Неверные входные данные"
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера"
+                    }
+                }
+            }
+        },
+        "/inventory/goods/": {
+            "patch": {
+                "description": "Возвращает список товаров на указанном складе с пагинацией",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Список товаров",
+                "parameters": [
+                    {
+                        "description": "Параметры пагинации",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/inventory.WarehousePagination"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Список товаров",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/inventory.ListByWarehouse"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Неверные входные данные"
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера"
+                    }
+                }
+            }
+        },
+        "/inventory/price/": {
+            "patch": {
+                "description": "Устанавливает цену для конкретного товара на указанном складе",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Установить цену товара",
+                "parameters": [
+                    {
+                        "description": "Данные установки цены",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/inventory.InventorySwagger1"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Цена успешно установлена"
+                    },
+                    "400": {
+                        "description": "Неверные входные данные"
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера"
+                    }
+                }
+            }
+        },
+        "/inventory/product/": {
+            "patch": {
+                "description": "Возвращает полную информацию о товаре на складе",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Информация о товаре",
+                "parameters": [
+                    {
+                        "description": "Идентификаторы склада и товара",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/inventory.InventorySwagger4"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Полная информация о товаре",
+                        "schema": {
+                            "$ref": "#/definitions/inventory.AllInformationAboutTheProduct"
+                        }
+                    },
+                    "400": {
+                        "description": "Неверные входные данные"
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера"
+                    }
+                }
+            }
+        },
+        "/inventory/purchase/": {
+            "patch": {
+                "description": "Обрабатывает покупку товаров и уменьшает их количество на складе",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Покупка товаров",
+                "parameters": [
+                    {
+                        "description": "Данные о покупке",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/inventory.NewInventory"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Покупка успешно обработана"
+                    },
+                    "400": {
+                        "description": "Неверные входные данные или недостаточно товара"
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера"
+                    }
+                }
+            }
+        },
+        "/inventory/updateQuantity/": {
+            "patch": {
+                "description": "Увеличивает количество товара на складе",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Inventory"
+                ],
+                "summary": "Обновить количество товара",
+                "parameters": [
+                    {
+                        "description": "Данные обновления количества",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/inventory.InventorySwagger2"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Количество успешно обновлено"
+                    },
+                    "400": {
+                        "description": "Неверные входные данные"
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера"
+                    }
+                }
+            }
+        },
+        "/products/add/": {
+            "post": {
+                "description": "Создает новую запись товара в системе",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Добавить новый товар",
+                "parameters": [
+                    {
+                        "description": "Данные нового товара",
+                        "name": "product",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/product.Products"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Товар успешно добавлен"
+                    },
+                    "400": {
+                        "description": "Неверные входные данные"
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера"
+                    }
+                }
+            }
+        },
+        "/products/all/": {
+            "get": {
+                "description": "Возвращает список всех товаров в системе без привязки к складам",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Получить все товары",
+                "responses": {
+                    "200": {
+                        "description": "Список товаров",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/product.Products"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка в запросе"
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера"
+                    }
+                }
+            }
+        },
+        "/products/update/": {
+            "put": {
+                "description": "Обновляет описание и характеристики существующего товара",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Products"
+                ],
+                "summary": "Обновить товар",
+                "parameters": [
+                    {
+                        "description": "Обновленные данные товара",
+                        "name": "product",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/product.Products"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Товар успешно обновлен"
+                    },
+                    "400": {
+                        "description": "Неверные входные данные"
+                    },
+                    "404": {
+                        "description": "Товар не найден"
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера"
+                    }
+                }
+            }
+        },
+        "/warehouses/add/": {
+            "post": {
+                "description": "Добавляет новый склад в систему складирования",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Склады"
+                ],
+                "summary": "Добавить новый склад",
+                "parameters": [
+                    {
+                        "description": "Данные склада",
+                        "name": "warehouse",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/warehouse.WarehousesSwagger"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Склад успешно добавлен"
+                    },
+                    "400": {
+                        "description": "Некорректные входные данные"
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера"
+                    }
+                }
+            }
+        },
+        "/warehouses/all/": {
+            "get": {
+                "description": "Возвращает список всех складов в системе",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Склады"
+                ],
+                "summary": "Получить все склады",
+                "responses": {
+                    "200": {
+                        "description": "Список складов",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/warehouse.Warehouses"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка запроса"
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера"
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "analytics.Analytics": {
+            "description": "Структура данных аналитики по продажам товаров на складе",
+            "type": "object",
+            "properties": {
+                "product_id": {
+                    "description": "Идентификатор товара",
+                    "type": "string",
+                    "example": "PRD-1001"
+                },
+                "soldgoods": {
+                    "description": "Количество проданных товаров",
+                    "type": "integer",
+                    "example": 50
+                },
+                "totalsum": {
+                    "description": "Общая сумма продаж",
+                    "type": "number",
+                    "example": 12500.5
+                },
+                "warehouse_id": {
+                    "description": "Идентификатор склада",
+                    "type": "string",
+                    "example": "WH-001"
+                }
+            }
+        },
+        "analytics.AnalyticsSwagger": {
+            "type": "object",
+            "properties": {
+                "warehouse_id": {
+                    "description": "Идентификатор склада",
+                    "type": "string",
+                    "example": "9be99fa0-2cd1-4c4e-863d-5115095fbd09"
+                }
+            }
+        },
+        "analytics.TopAnalytics": {
+            "description": "Структура данных топовых складов по выручке",
+            "type": "object",
+            "properties": {
+                "addr": {
+                    "description": "Адрес склада",
+                    "type": "string",
+                    "example": "ул. Ленина, 10"
+                },
+                "totalsum": {
+                    "description": "Общая выручка склада",
+                    "type": "number",
+                    "example": 150000.75
+                },
+                "warehouse_id": {
+                    "description": "Идентификатор склада",
+                    "type": "string",
+                    "example": "WH-001"
+                }
+            }
+        },
+        "inventory.AllInformationAboutTheProduct": {
+            "type": "object",
+            "properties": {
+                "barcode": {
+                    "type": "string"
+                },
+                "characteristics": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "discount": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "product_id": {
+                    "type": "string"
+                },
+                "quantity": {
+                    "type": "integer"
+                },
+                "weight": {
+                    "type": "number"
+                }
+            }
+        },
+        "inventory.InventorySwagger1": {
+            "type": "object",
+            "properties": {
+                "price": {
+                    "type": "number",
+                    "example": 999.99
+                },
+                "product_id": {
+                    "type": "string",
+                    "example": "36c6ecf5-1e13-4cef-a591-bc8368fa0e60"
+                },
+                "warehouse_id": {
+                    "type": "string",
+                    "example": "9be99fa0-2cd1-4c4e-863d-5115095fbd09"
+                }
+            }
+        },
+        "inventory.InventorySwagger2": {
+            "type": "object",
+            "properties": {
+                "product_id": {
+                    "type": "string",
+                    "example": "36c6ecf5-1e13-4cef-a591-bc8368fa0e60"
+                },
+                "quantity": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "warehouse_id": {
+                    "type": "string",
+                    "example": "9be99fa0-2cd1-4c4e-863d-5115095fbd09"
+                }
+            }
+        },
+        "inventory.InventorySwagger4": {
+            "type": "object",
+            "properties": {
+                "product_id": {
+                    "type": "string",
+                    "example": "36c6ecf5-1e13-4cef-a591-bc8368fa0e60"
+                },
+                "warehouse_id": {
+                    "type": "string",
+                    "example": "9be99fa0-2cd1-4c4e-863d-5115095fbd09"
+                }
+            }
+        },
+        "inventory.InventorySwagger5": {
+            "type": "object",
+            "properties": {
+                "sum": {
+                    "type": "number"
+                }
+            }
+        },
+        "inventory.ListByWarehouse": {
+            "type": "object",
+            "properties": {
+                "discount": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "product_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "inventory.NewInventory": {
+            "description": "Данные для создания или обновления инвентарной записи",
+            "type": "object",
+            "properties": {
+                "product": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/inventory.ProductInventory2"
+                    }
+                },
+                "warehouse_id": {
+                    "type": "string",
+                    "example": "9be99fa0-2cd1-4c4e-863d-5115095fbd09"
+                }
+            }
+        },
+        "inventory.NewInventoryDiscount": {
+            "description": "Данные для установки скидки на товары",
+            "type": "object",
+            "properties": {
+                "discount": {
+                    "description": "Размер скидки (0.2 = 20%)",
+                    "type": "number",
+                    "example": 0.2
+                },
+                "product_id": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "881670ed-8195-43d6-b678-3741bd3289ae",
+                        "25f8f0ba-75f0-4caa-8648-27f6be3254b3"
+                    ]
+                },
+                "warehouse_id": {
+                    "type": "string",
+                    "example": "9be99fa0-2cd1-4c4e-863d-5115095fbd09"
+                }
+            }
+        },
+        "inventory.ProductInventory2": {
+            "description": "Упрощенная структура товара для операций",
+            "type": "object",
+            "properties": {
+                "product_id": {
+                    "type": "string",
+                    "example": "881670ed-8195-43d6-b678-3741bd3289ae"
+                },
+                "quantity": {
+                    "type": "integer",
+                    "example": 5
+                }
+            }
+        },
+        "inventory.WarehousePagination": {
+            "description": "Параметры пагинации для списка товаров на складе",
+            "type": "object",
+            "properties": {
+                "limit": {
+                    "description": "Количество элементов на странице",
+                    "type": "integer",
+                    "example": 10
+                },
+                "offset": {
+                    "description": "Смещение (номер страницы * limit)",
+                    "type": "integer",
+                    "example": 0
+                },
+                "warehouse_id": {
+                    "type": "string",
+                    "example": "9be99fa0-2cd1-4c4e-863d-5115095fbd09"
+                }
+            }
+        },
+        "product.Products": {
+            "description": "Основная информация о товаре в системе",
+            "type": "object",
+            "properties": {
+                "barcode": {
+                    "description": "Штрих-код товара",
+                    "type": "string",
+                    "example": "123456789012"
+                },
+                "description": {
+                    "description": "Описание товара",
+                    "type": "string",
+                    "example": "Флагманский смартфон 2023 года"
+                },
+                "keyvalue": {
+                    "description": "Характеристики товара (ключ-значение)",
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "name": {
+                    "description": "Наименование товара",
+                    "type": "string",
+                    "example": "Смартфон"
+                },
+                "product_id": {
+                    "description": "Уникальный идентификатор товара",
+                    "type": "string",
+                    "example": "PRD-1001"
+                },
+                "weight": {
+                    "description": "Вес товара",
+                    "type": "string",
+                    "example": "0.2"
+                }
+            }
+        },
+        "warehouse.Warehouses": {
+            "type": "object",
+            "properties": {
+                "addr": {
+                    "description": "Физический адрес склада",
+                    "type": "string",
+                    "example": "ул. Складская, д.1"
+                },
+                "id": {
+                    "description": "Уникальный идентификатор склада",
+                    "type": "integer",
+                    "example": 1
+                },
+                "warehouse_id": {
+                    "description": "Внешний идентификатор склада",
+                    "type": "string",
+                    "example": "WH-001"
+                }
+            }
+        },
+        "warehouse.WarehousesSwagger": {
+            "type": "object",
+            "properties": {
+                "addr": {
+                    "type": "string",
+                    "example": "fghverv4446"
+                }
+            }
+        }
+    }
+}

@@ -29,7 +29,7 @@ func Set() (*Settings, error) {
 	logger.Info(url)
 
 	db, err := pgx.Connect(context.Background(), url)
-	
+
 	if err != nil {
 		logger.Error("Ошибка в соединении с PostgreSQL")
 		return &Settings{

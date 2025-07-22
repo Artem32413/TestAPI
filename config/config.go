@@ -19,12 +19,12 @@ func ZapFunc() *zap.Logger {
 	config := configZap()
 
 	logger, err := config.Build()
-	if err != nil{
+	if err != nil {
 		logger.Error(err.Error())
 		return nil
 	}
 
 	defer logger.Sync()
-	
+
 	return logger
 }
