@@ -19,8 +19,7 @@ func Set() (*Settings, error) {
 
 	logger := config.ZapFunc()
 
-	err := godotenv.Load()
-	if err != nil {
+	if err := godotenv.Load(); err != nil {
 		logger.Error(err.Error())
 	}
 

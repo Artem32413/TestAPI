@@ -31,8 +31,9 @@ FROM
 func (s *InventoryService) DisplayProducts() ([]Products, error) {
 	productsRows, err := s.Db.Query(context.Background(), displayProducts)
 	if err != nil {
-		return nil, fmt.Errorf("query products failed: %w", err)
+		return nil, fmt.Errorf("Запрос продуктов не удался: %w", err)
 	}
+
 	defer productsRows.Close()
 
 	var products []Products
@@ -40,6 +41,7 @@ func (s *InventoryService) DisplayProducts() ([]Products, error) {
 
 	for productsRows.Next() {
 		var p Products
+
 		if err := productsRows.Scan(
 			&p.Product_id,
 			&p.Name,
@@ -47,15 +49,16 @@ func (s *InventoryService) DisplayProducts() ([]Products, error) {
 			&p.Weight,
 			&p.Barcode,
 		); err != nil {
-			return nil, fmt.Errorf("scan product failed: %w", err)
+			return nil, fmt.Errorf("Сканирование продуктов не удалось: %w", err)
 		}
+
 		products = append(products, p)
 		productIDs = append(productIDs, p.Product_id)
 	}
 
 	attrs, err := s.GetAllAttributes(productIDs)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get attributes: %w", err)
+		return nil, fmt.Errorf("Не удалось получить атрибуты: %w", err)
 	}
 
 	for i := range products {
@@ -68,9 +71,11 @@ func (s *InventoryService) DisplayProducts() ([]Products, error) {
 }
 func convertMapToSlice(attrs map[string]string) []map[string]string {
 	var result []map[string]string
+
 	for key, value := range attrs {
 		result = append(result, map[string]string{key: value})
 	}
+
 	return result
 }
 func (s *InventoryService) GetAllAttributes(productIDs []string) (map[string]map[string]string, error) {
@@ -84,6 +89,7 @@ func (s *InventoryService) GetAllAttributes(productIDs []string) (map[string]map
 	if err != nil {
 		return nil, fmt.Errorf("query attributes failed: %w", err)
 	}
+
 	defer rows.Close()
 
 	attrs := make(map[string]map[string]string)

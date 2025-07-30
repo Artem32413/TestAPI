@@ -23,8 +23,8 @@ import (
 	"os"
 	"os/signal"
 
-	"go.uber.org/zap"
 	_ "apiGo/docs"
+	"go.uber.org/zap"
 )
 
 // @Summary		Запуск приложения
