@@ -61,14 +61,12 @@ func (s *InventoryService) DisplayAllAnalytics(str Analytics) ([]Analytics, erro
 	for r.Next() {
 		var NewAnalytics Analytics
 
-		err = r.Scan(
+		if err = r.Scan(
 			&NewAnalytics.Warehouse_id,
 			&NewAnalytics.Product_id,
 			&NewAnalytics.SoldGoods,
 			&NewAnalytics.TotalSum,
-		)
-
-		if err != nil {
+		); err != nil {
 			return nil, fmt.Errorf("Ошибка сканирования данных аналитики: %w", err)
 		}
 

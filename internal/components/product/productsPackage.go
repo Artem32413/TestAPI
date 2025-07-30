@@ -13,7 +13,7 @@ type Products struct {
 	Name        string              `json:"name" example:"Смартфон"`                              // Наименование товара
 	Description string              `json:"description" example:"Флагманский смартфон 2023 года"` // Описание товара
 	KeyValue    []map[string]string `json:"keyvalue,omitempty"`                                   // Характеристики товара (ключ-значение)
-	Weight      string              `json:"weight,omitempty" example:"0.2"`                    // Вес товара
+	Weight      string              `json:"weight,omitempty" example:"0.2"`                       // Вес товара
 	Barcode     string              `json:"barcode,omitempty" example:"123456789012"`             // Штрих-код товара
 }
 

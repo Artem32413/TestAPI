@@ -26,9 +26,8 @@ type InventoryService struct {
 	*components.Settings
 }
 
-
 type AnalyticsSwagger struct {
-	Warehouse_id string  `json:"warehouse_id" example:"9be99fa0-2cd1-4c4e-863d-5115095fbd09"` // Идентификатор склада
+	Warehouse_id string `json:"warehouse_id" example:"9be99fa0-2cd1-4c4e-863d-5115095fbd09"` // Идентификатор склада
 }
 
 // AnalyticsAll обрабатывает запрос аналитики продаж
