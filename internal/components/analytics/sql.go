@@ -51,7 +51,7 @@ func (s *InventoryService) DisplayAllAnalytics(str Analytics) ([]Analytics, erro
 
 	r, err := s.Db.Query(context.Background(), productAnalytics, str.Warehouse_id)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка выполнения запроса аналитики: %w", err)
+		return nil, fmt.Errorf("Ошибка выполнения запроса аналитики: %w", err)
 	}
 
 	defer r.Close()
@@ -69,7 +69,7 @@ func (s *InventoryService) DisplayAllAnalytics(str Analytics) ([]Analytics, erro
 		)
 
 		if err != nil {
-			return nil, fmt.Errorf("ошибка сканирования данных аналитики: %w", err)
+			return nil, fmt.Errorf("Ошибка сканирования данных аналитики: %w", err)
 		}
 
 		a = append(a, NewAnalytics)
@@ -88,6 +88,7 @@ func (s *InventoryService) DisplayTop() ([]TopAnalytics, error) {
 
 	for r.Next() {
 		var a TopAnalytics
+
 		if err = r.Scan(&a.Addr, &a.Warehouse_id, &a.TotalSum); err != nil {
 			return nil, err
 		}
