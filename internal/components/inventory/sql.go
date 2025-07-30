@@ -100,9 +100,7 @@ type SummingUp struct {
 
 func (s *InventoryService) SetPriceDB(price Inventory) error {
 
-	exist := s.Exists(1, price, NewInventoryDiscount{}, NewInventory{}, WarehousePagination{})
-
-	if exist {
+	if exist := s.Exists(1, price, NewInventoryDiscount{}, NewInventory{}, WarehousePagination{}); exist {
 		if _, err := s.Db.Exec(context.Background(), priceUpdate, price.Price, price.Warehouse_id, price.Product_id); err != nil {
 			return err
 		}
@@ -117,10 +115,8 @@ func (s *InventoryService) SetPriceDB(price Inventory) error {
 
 func (s *InventoryService) UpdateQuantity(inventory Inventory) error {
 
-	exist := s.Exists(1, inventory, NewInventoryDiscount{}, NewInventory{}, WarehousePagination{})
-
-	if !exist {
-		return fmt.Errorf("Товар не найден")
+	if exist := s.Exists(1, inventory, NewInventoryDiscount{}, NewInventory{}, WarehousePagination{}); !exist {
+		return fmt.Errorf("Ошибка в проверке на существование склада и товара")
 	}
 
 	if _, err := s.Db.Exec(context.Background(), updateQuantity, inventory.Quantity, inventory.Warehouse_id, inventory.Product_id); err != nil {
@@ -132,9 +128,7 @@ func (s *InventoryService) UpdateQuantity(inventory Inventory) error {
 
 func (s *InventoryService) CreatingADiscount(discount NewInventoryDiscount) error {
 
-	exist := s.Exists(3, Inventory{}, discount, NewInventory{}, WarehousePagination{})
-
-	if !exist {
+	if exist := s.Exists(3, Inventory{}, discount, NewInventory{}, WarehousePagination{}); !exist {
 		return fmt.Errorf("Склад не найден")
 	}
 
@@ -149,10 +143,8 @@ func (s *InventoryService) CreatingADiscount(discount NewInventoryDiscount) erro
 
 func (s *InventoryService) ListProductsByWarehouse(warehouse WarehousePagination) ([]ListByWarehouse, error) {
 
-	exist := s.Exists(5, Inventory{}, NewInventoryDiscount{}, NewInventory{}, warehouse)
-
-	if !exist {
-		return nil, fmt.Errorf("склад с ID %s не найден", warehouse.Warehouse_id)
+	if exist := s.Exists(5, Inventory{}, NewInventoryDiscount{}, NewInventory{}, warehouse); !exist {
+		return nil, fmt.Errorf("Склад с ID %s не найден", warehouse.Warehouse_id)
 	}
 
 	rows, err := s.Db.Query(
@@ -164,7 +156,7 @@ func (s *InventoryService) ListProductsByWarehouse(warehouse WarehousePagination
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("ошибка выполнения запроса: %w", err)
+		return nil, fmt.Errorf("Ошибка выполнения запроса: %w", err)
 	}
 
 	defer rows.Close()
@@ -182,14 +174,14 @@ func (s *InventoryService) ListProductsByWarehouse(warehouse WarehousePagination
 		)
 
 		if err != nil {
-			return nil, fmt.Errorf("ошибка сканирования данных: %w", err)
+			return nil, fmt.Errorf("Ошибка сканирования данных: %w", err)
 		}
 
 		products = append(products, p)
 	}
 
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("ошибка при обработке результатов: %w", err)
+		return nil, fmt.Errorf("Ошибка при обработке результатов: %w", err)
 	}
 
 	return products, nil
@@ -197,27 +189,23 @@ func (s *InventoryService) ListProductsByWarehouse(warehouse WarehousePagination
 
 func (s *InventoryService) ListProduct(product Inventory) (AllInformationAboutTheProduct, error) {
 
-	exist := s.Exists(1, product, NewInventoryDiscount{}, NewInventory{}, WarehousePagination{})
-
-	if !exist {
-		return AllInformationAboutTheProduct{}, fmt.Errorf("Товар не найден")
+	if exist := s.Exists(1, product, NewInventoryDiscount{}, NewInventory{}, WarehousePagination{}); !exist {
+		return AllInformationAboutTheProduct{}, fmt.Errorf("Ошибка в проверке на существование склада и товара")
 	}
 
 	var n AllInformationAboutTheProduct
 
-	err := s.Db.QueryRow(context.Background(), listInventory, product.Warehouse_id, product.Product_id).Scan(&n.Price, &n.Discount, &n.Quantity)
-	if err != nil {
+	if err := s.Db.QueryRow(context.Background(), listInventory, product.Warehouse_id, product.Product_id).Scan(&n.Price, &n.Discount, &n.Quantity); err != nil {
 		return AllInformationAboutTheProduct{}, fmt.Errorf("Ошибка с запросом остатка %w", err)
 	}
 
-	err = s.Db.QueryRow(context.Background(), oneProduct, product.Product_id).Scan(&n.Product_id, &n.Name, &n.Description, &n.Weight, &n.Barcode)
-	if err != nil {
+	if err := s.Db.QueryRow(context.Background(), oneProduct, product.Product_id).Scan(&n.Product_id, &n.Name, &n.Description, &n.Weight, &n.Barcode); err != nil {
 		return AllInformationAboutTheProduct{}, fmt.Errorf("Ошибка с запросом товара %w", err)
 	}
 
 	attrs, err := s.GetAllAttributes([]string{n.Product_id})
 	if err != nil {
-		return n, fmt.Errorf("ошибка получения характеристик: %w", err)
+		return n, fmt.Errorf("Ошибка получения характеристик: %w", err)
 	}
 
 	if productAttrs, exists := attrs[n.Product_id]; exists {
@@ -230,28 +218,24 @@ func (s *InventoryService) ListProduct(product Inventory) (AllInformationAboutTh
 func (s *InventoryService) ListCount(count NewInventory) (SummingUp, error) {
 	var result SummingUp
 
-	exist := s.Exists(4, Inventory{}, NewInventoryDiscount{}, count, WarehousePagination{})
-
-	if !exist {
-		return result, fmt.Errorf("склад с ID %s не найден", count.Warehouse_id)
+	if exist := s.Exists(4, Inventory{}, NewInventoryDiscount{}, count, WarehousePagination{}); !exist {
+		return result, fmt.Errorf("Склад с ID %s не найден", count.Warehouse_id)
 	}
 
 	if len(count.Product) == 0 {
-		return result, fmt.Errorf("список товаров не может быть пустым")
+		return result, fmt.Errorf("Список товаров не может быть пустым")
 	}
 
 	productIDs, quantities := Slices(count)
 
-	err := s.Db.QueryRow(
+	if err := s.Db.QueryRow(
 		context.Background(),
 		listCount,
 		productIDs,
 		quantities,
 		count.Warehouse_id,
-	).Scan(&result.Sum)
-
-	if err != nil {
-		return result, fmt.Errorf("ошибка расчета суммы: %w", err)
+	).Scan(&result.Sum); err != nil {
+		return result, fmt.Errorf("Ошибка расчета суммы: %w", err)
 	}
 
 	return result, nil
@@ -259,9 +243,7 @@ func (s *InventoryService) ListCount(count NewInventory) (SummingUp, error) {
 
 func (s *InventoryService) Purchase(purchase NewInventory) error {
 
-	exist := s.Exists(4, Inventory{}, NewInventoryDiscount{}, purchase, WarehousePagination{})
-
-	if !exist {
+	if exist := s.Exists(4, Inventory{}, NewInventoryDiscount{}, purchase, WarehousePagination{}); !exist {
 		return fmt.Errorf("Склад не найден")
 	}
 
@@ -270,8 +252,7 @@ func (s *InventoryService) Purchase(purchase NewInventory) error {
 	var quantity int
 
 	for _, product_id := range productIDs {
-		err := s.Db.QueryRow(context.Background(), quantityCheck, purchase.Warehouse_id, product_id).Scan(&quantity)
-		if err != nil {
+		if err := s.Db.QueryRow(context.Background(), quantityCheck, purchase.Warehouse_id, product_id).Scan(&quantity); err != nil {
 			return fmt.Errorf("Ошибка проверки количества: %w", err)
 		}
 	}
