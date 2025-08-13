@@ -1,4 +1,4 @@
-package app
+package host
 
 import (
 	"apiGo/internal/warehouses/transport"
@@ -14,7 +14,7 @@ func StartMain(ctx context.Context, logger *zap.Logger) error {
 
 	logger.Info("Сервер запущен")
 
-	mux := transport.AllHandles()
+	mux := transport.AllHandles(ctx, logger)
 
 	s := http.Server{
 		Addr:    ":8081",

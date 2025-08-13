@@ -1,6 +1,4 @@
-package model
-
-import "apiGo/internal/warehouses/config/settings"
+package structs
 
 // Warehouses представляет склад в системе
 // swagger:model Warehouse
@@ -15,6 +13,6 @@ type Warehouses struct {
 	Addr string `json:"addr" example:"ул. Складская, д.1"`
 }
 
-type InventoryService struct {
-	*settings.Settings
+type WarehousesSwagger struct {
+	Addr string `json:"addr" example:"fghverv4446"`
 }

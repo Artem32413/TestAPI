@@ -2,7 +2,7 @@ package service
 
 import (
 	"apiGo/internal/analytics/database/postgreSQL"
-	model "apiGo/internal/analytics/model/structs"
+	"apiGo/internal/analytics/model/structs"
 
 	"context"
 )
@@ -17,10 +17,10 @@ func New(repo *postgreSQL.DBService) *AnalyticsService {
     }
 }
 
-func (s *AnalyticsService) AnalyticsAllLogic(ctx context.Context, str model.Analytics) ([]model.Analytics, error) {
+func (s *AnalyticsService) AnalyticsAllLogic(ctx context.Context, str structs.Analytics) ([]structs.Analytics, error) {
 	return s.repo.DisplayAllAnalytics(ctx, str)
 }
 
-func (s *AnalyticsService) AnalyticsTopLogic(ctx context.Context) ([]model.TopAnalytics, error) {
+func (s *AnalyticsService) AnalyticsTopLogic(ctx context.Context) ([]structs.TopAnalytics, error) {
 	return s.repo.DisplayTop(ctx)
 }

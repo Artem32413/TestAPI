@@ -39,7 +39,7 @@ func New(svc *service.AnalyticsService, logger *zap.Logger) *AnalyticsHandler {
 // @Failure 500 "Внутренняя ошибка сервера"
 // @Router /analytics/ [post]
 func (s *AnalyticsHandler) AnalyticsAll(w http.ResponseWriter, r *http.Request) {
-	var a model.Analytics
+	var a structs.Analytics
 
 	if err := requests.NewDec(r, &a); err != nil {
 		errors.HandleError(s.logger, w, err, http.StatusBadRequest)

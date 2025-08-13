@@ -3,9 +3,7 @@ package transport
 import (
 	"apiGo/internal/analytics/appAnalytics"
 	"apiGo/internal/analytics/config/databaseConfig"
-	"apiGo/internal/analytics/config/zapConfig"
 	"apiGo/internal/analytics/database/postgreSQL"
-	"apiGo/internal/analytics/model/interfaces"
 	"apiGo/internal/analytics/service"
 	swaggerpkg "apiGo/internal/analytics/transport/swaggerPkg"
 
@@ -15,12 +13,6 @@ import (
 
 	"go.uber.org/zap"
 )
-
-type InventoryService struct {
-	*zapConfig.ZapConf
-	interfaces.HandlersAnalytics
-	*databaseConfig.PostgreSQL
-}
 
 func AllHandles(ctx context.Context, log *zap.Logger) *http.ServeMux {
 	db, err := databaseConfig.ConstructorDB(ctx)

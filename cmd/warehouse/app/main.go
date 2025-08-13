@@ -16,6 +16,7 @@
 package app
 
 import (
+	"apiGo/cmd/warehouse/host"
 	"apiGo/internal/warehouses/config/zapConfig"
 
 	"context"
@@ -46,5 +47,5 @@ func realMain(logger *zap.Logger) error {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	return StartMain(ctx, logger)
+	return host.StartMain(ctx, logger)
 }

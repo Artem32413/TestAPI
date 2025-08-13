@@ -1,17 +1,17 @@
 package interfaces
 
 import (
-	model "apiGo/internal/warehouses/model/structs"
+	model "apiGo/internal/analytics/model/structs"
 	"context"
 	"net/http"
 )
 
-type HandlersWarehouses interface {
-	AddingNewWarehouses(w http.ResponseWriter, r *http.Request)
-	DisplayAllWarehouses(w http.ResponseWriter, r *http.Request)
+type HandlersAnalytics interface {
+	AnalyticsAll(w http.ResponseWriter, r *http.Request)
+	AnalyticsTop(w http.ResponseWriter, r *http.Request)
 }
 
-type WarehousesRepo interface {
-	Addition(warehouses model.Warehouses, ctx context.Context) error
-	Display(ctx context.Context) ([]model.Warehouses, error)
+type AnalyticsRepo interface {
+	DisplayAllAnalytics(ctx context.Context, str model.Analytics) ([]model.Analytics, error)
+	DisplayTop(ctx context.Context) ([]model.TopAnalytics, error)
 }

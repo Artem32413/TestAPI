@@ -51,7 +51,7 @@ func New(db *databaseConfig.PostgreSQL) *DBService {
     return &DBService{db: db.Db}
 }
 
-func (s *DBService) DisplayAllAnalytics(ctx context.Context, str model.Analytics) ([]model.Analytics, error) {
+func (s *DBService) DisplayAllAnalytics(ctx context.Context, str structs.Analytics) ([]structs.Analytics, error) {
 	var exist bool
 
 	if err := s.db.QueryRow(ctx, existsWarehouse, str.Warehouse_id).Scan(&exist); err != nil {
@@ -69,10 +69,10 @@ func (s *DBService) DisplayAllAnalytics(ctx context.Context, str model.Analytics
 
 	defer r.Close()
 
-	var a []model.Analytics
+	var a []structs.Analytics
 
 	for r.Next() {
-		var NewAnalytics model.Analytics
+		var NewAnalytics structs.Analytics
 
 		if err = r.Scan(
 			&NewAnalytics.Warehouse_id,
@@ -89,22 +89,22 @@ func (s *DBService) DisplayAllAnalytics(ctx context.Context, str model.Analytics
 	return a, nil
 }
 
-func (s *DBService) DisplayTop(ctx context.Context) ([]model.TopAnalytics, error) {
+func (s *DBService) DisplayTop(ctx context.Context) ([]structs.TopAnalytics, error) {
 	r, err := s.db.Query(ctx, topWarehouses)
 	if err != nil {
 		return nil, err
 	}
 
-	var slAnalytic []model.TopAnalytics
+	var slAnalytic []structs.TopAnalytics
 
 	for r.Next() {
-		var a model.TopAnalytics
+		var a structs.TopAnalytics
 
 		if err = r.Scan(&a.Addr, &a.Warehouse_id, &a.TotalSum); err != nil {
 			return nil, err
 		}
 
-		slAnalytic = append(slAnalytic, model.TopAnalytics{Addr: a.Addr, Warehouse_id: a.Warehouse_id, TotalSum: a.TotalSum})
+		slAnalytic = append(slAnalytic, structs.TopAnalytics{Addr: a.Addr, Warehouse_id: a.Warehouse_id, TotalSum: a.TotalSum})
 	}
 
 	return slAnalytic, nil

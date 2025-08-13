@@ -1,4 +1,4 @@
-package model
+package structs
 
 type Analytics struct {
 	Warehouse_id string  `json:"warehouse_id" example:"WH-001"` // Идентификатор склада
