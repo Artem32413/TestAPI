@@ -7,7 +7,7 @@ type Warehouses struct {
 	Id int `json:"id" example:"1"`
 
 	// Внешний идентификатор склада
-	Warehouse_id string `json:"warehouse_id" example:"WH-001"`
+	WarehouseId string `json:"warehouseId" example:"WH-001"`
 
 	// Физический адрес склада
 	Addr string `json:"addr" example:"ул. Складская, д.1"`

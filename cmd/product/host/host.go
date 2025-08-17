@@ -1,8 +1,8 @@
 package host
 
 import (
-	"apiGo/cmd/warehouse/host/middleware"
-	"apiGo/internal/warehouses/transport"
+	"apiGo/cmd/product/host/middleware"
+	"apiGo/internal/product/transport"
 
 	"context"
 	"net/http"
@@ -17,7 +17,7 @@ func StartMain(ctx context.Context, logger *zap.Logger) error {
 	mux := transport.AllHandles(ctx, logger)
 
 	s := http.Server{
-		Addr:    ":8081",
+		Addr:    ":8082",
 		Handler: middleware.LoggingMiddleware(mux),
 	}
 

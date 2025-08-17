@@ -1,12 +1,12 @@
 package host
 
 import (
+	"apiGo/cmd/analytics/host/middleware"
 	"apiGo/internal/analytics/transport"
+
 	"context"
 	"net/http"
 
-	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 	"go.uber.org/zap"
 )
 
@@ -18,7 +18,7 @@ func StartMain(ctx context.Context, logger *zap.Logger) error {
 
 	s := http.Server{
 		Addr:    ":8080",
-		Handler: LoggingMiddleware(mux),
+		Handler: middleware.LoggingMiddleware(mux),
 	}
 
 	go func() {
@@ -32,24 +32,4 @@ func StartMain(ctx context.Context, logger *zap.Logger) error {
 	}
 
 	return nil
-}
-
-type keyRequestID struct{}
-
-func LoggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
-		newUuid := r.Header.Get("x-request-id")
-
-		newUuid = uuid.New().String()
-
-		logger := logrus.WithField("request_id", newUuid)
-
-		ctx := context.WithValue(r.Context(), keyRequestID{}, newUuid)
-		ctx = context.WithValue(ctx, "logger", logger)
-
-		r = r.WithContext(ctx)
-
-		next.ServeHTTP(w, r)
-	})
 }

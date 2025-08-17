@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS Products (
     barcode VARCHAR(255) UNIQUE
 );
 
-CREATE TABLE IF NOT EXISTS product_key_values (
+CREATE TABLE IF NOT EXISTS ProductKeyValues (
+    product_id VARCHAR(255) NOT NULL,
     key VARCHAR(255) NOT NULL,
     value VARCHAR(255) NOT NULL,
     PRIMARY KEY (product_id, key)

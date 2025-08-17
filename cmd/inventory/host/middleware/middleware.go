@@ -1,38 +1,12 @@
-package app
+package middleware
 
 import (
-	"apiGo/internal/product/transport"
 	"context"
 	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
-	"go.uber.org/zap"
 )
-
-func StartMain(ctx context.Context, logger *zap.Logger) error {
-
-	logger.Info("Сервер запущен")
-
-	mux := transport.AllHandles()
-
-	s := http.Server{
-		Addr:    ":8082",
-		Handler: LoggingMiddleware(mux),
-	}
-
-	go func() {
-		<-ctx.Done()
-		logger.Info("Сервер завершен")
-		s.Shutdown(ctx)
-	}()
-
-	if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		return err
-	}
-
-	return nil
-}
 
 type keyRequestID struct{}
 

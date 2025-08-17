@@ -12,31 +12,31 @@ import (
 
 var (
 	// Аналитика
-	existsWarehouse  = `SELECT EXISTS(SELECT 1 FROM Inventory WHERE warehouse_id = $1)`
+	existsWarehouse  = `SELECT EXISTS(SELECT 1 FROM Inventory WHERE warehouseId = $1)`
 	productAnalytics = `SELECT 
-							warehouse_id,
-							product_id,
+							warehouseId,
+							productId,
 							SUM(sold_goods) AS total_sold,
 							SUM(total_sum) AS total_revenue
 						FROM 
 							Analytics
 						WHERE 
-							warehouse_id = $1
+							warehouseId = $1
 						GROUP BY 
-							warehouse_id, product_id 
+							warehouseId, productId 
 						ORDER BY 
 							total_revenue DESC;`
 	topWarehouses = `
 						SELECT 
-						w.warehouse_id,
+						w.warehouseId,
 						w.addr,
 						SUM(a.total_sum) AS total_revenue
 					FROM 
 						WarehousesTable w
 					JOIN 
-						Analytics a ON w.warehouse_id = a.warehouse_id
+						Analytics a ON w.warehouseId = a.warehouseId
 					GROUP BY 
-						w.warehouse_id, w.addr
+						w.warehouseId, w.addr
 					ORDER BY 
 						total_revenue DESC
 					LIMIT 10;
@@ -54,7 +54,7 @@ func New(db *databaseConfig.PostgreSQL) *DBService {
 func (s *DBService) DisplayAllAnalytics(ctx context.Context, str structs.Analytics) ([]structs.Analytics, error) {
 	var exist bool
 
-	if err := s.db.QueryRow(ctx, existsWarehouse, str.Warehouse_id).Scan(&exist); err != nil {
+	if err := s.db.QueryRow(ctx, existsWarehouse, str.WarehouseId).Scan(&exist); err != nil {
 		return nil, fmt.Errorf("Ошибка в проверке на существование склада")
 	}
 
@@ -62,7 +62,7 @@ func (s *DBService) DisplayAllAnalytics(ctx context.Context, str structs.Analyti
 		return nil, fmt.Errorf("Склад не найден")
 	}
 
-	r, err := s.db.Query(ctx, productAnalytics, str.Warehouse_id)
+	r, err := s.db.Query(ctx, productAnalytics, str.WarehouseId)
 	if err != nil {
 		return nil, fmt.Errorf("Ошибка выполнения запроса аналитики: %w", err)
 	}
@@ -75,8 +75,8 @@ func (s *DBService) DisplayAllAnalytics(ctx context.Context, str structs.Analyti
 		var NewAnalytics structs.Analytics
 
 		if err = r.Scan(
-			&NewAnalytics.Warehouse_id,
-			&NewAnalytics.Product_id,
+			&NewAnalytics.WarehouseId,
+			&NewAnalytics.ProductId,
 			&NewAnalytics.SoldGoods,
 			&NewAnalytics.TotalSum,
 		); err != nil {
@@ -100,11 +100,11 @@ func (s *DBService) DisplayTop(ctx context.Context) ([]structs.TopAnalytics, err
 	for r.Next() {
 		var a structs.TopAnalytics
 
-		if err = r.Scan(&a.Addr, &a.Warehouse_id, &a.TotalSum); err != nil {
+		if err = r.Scan(&a.Addr, &a.WarehouseId, &a.TotalSum); err != nil {
 			return nil, err
 		}
 
-		slAnalytic = append(slAnalytic, structs.TopAnalytics{Addr: a.Addr, Warehouse_id: a.Warehouse_id, TotalSum: a.TotalSum})
+		slAnalytic = append(slAnalytic, structs.TopAnalytics{Addr: a.Addr, WarehouseId: a.WarehouseId, TotalSum: a.TotalSum})
 	}
 
 	return slAnalytic, nil

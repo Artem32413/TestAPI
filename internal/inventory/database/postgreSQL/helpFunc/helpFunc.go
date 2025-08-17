@@ -1,47 +1,39 @@
-package split
+package helpFunc
 
 import (
-	"apiGo/internal/inventory/config/settings"
 	model "apiGo/internal/inventory/model/structs"
 	"context"
 	"fmt"
+
+	"github.com/jackc/pgx/v5"
 )
 
 var (
-	existsWarehouse = `SELECT EXISTS(SELECT 1 FROM Inventory WHERE warehouse_id = $1)`
-	exists          = `SELECT EXISTS(SELECT 1 FROM Inventory WHERE warehouse_id = $1 AND product_id = $2)`
+	existsWarehouse = `SELECT EXISTS(SELECT 1 FROM Inventory WHERE warehouseId = $1)`
+	exists          = `SELECT EXISTS(SELECT 1 FROM Inventory WHERE warehouseId = $1 AND productId = $2)`
 )
 
-type InventoryService struct {
-	*settings.Settings
-}
-
-type SplitMethods interface{
-	Exists(a int, value model.Inventory, value2 model.NewInventoryDiscount, value3 model.NewInventory, value4 model.WarehousePagination) bool
-	GetAllAttributes(productIDs []string) (map[string]map[string]string, error)
-}
-
-func (s *InventoryService) Exists(a int, value model.Inventory, value2 model.NewInventoryDiscount, value3 model.NewInventory, value4 model.WarehousePagination) bool {
+func Exists(db *pgx.Conn, ctx context.Context, a int, value model.Inventory, value2 model.NewInventoryDiscount, value3 model.NewInventory, value4 model.WarehousePagination) bool {
 	var exist bool
 
 	if a == 1 {
-		if err := s.Db.QueryRow(context.Background(), exists, value.Warehouse_id, value.Product_id).Scan(&exist); err != nil {
+		if err := db.QueryRow(ctx, exists, value.WarehouseId, value.ProductId).Scan(&exist); err != nil {
 			s.Logger.Error("Ошибка в проверке на существование склада и товара")
 		}
 	} else if a == 2 {
-		if err := s.Db.QueryRow(context.Background(), existsWarehouse, value.Warehouse_id).Scan(&exist); err != nil {
+		if err := db.QueryRow(ctx, existsWarehouse, value.WarehouseId).Scan(&exist); err != nil {
 			s.Logger.Error("Ошибка в проверке на существование склада")
 		}
 	} else if a == 3 {
-		if err := s.Db.QueryRow(context.Background(), existsWarehouse, value2.Warehouse_id).Scan(&exist); err != nil {
+		if err := db.QueryRow(ctx, existsWarehouse, value2.WarehouseId).Scan(&exist); err != nil {
 			s.Logger.Error("Ошибка в проверке на существование склада")
 		}
 	} else if a == 4 {
-		if err := s.Db.QueryRow(context.Background(), existsWarehouse, value3.Warehouse_id).Scan(&exist); err != nil {
+		if err := db.QueryRow(ctx, existsWarehouse, value3.WarehouseId).Scan(&exist); err != nil {
 			s.Logger.Error("Ошибка в проверке на существование склада")
 		}
 	} else {
-		if err := s.Db.QueryRow(context.Background(), existsWarehouse, value4.Warehouse_id).Scan(&exist); err != nil {
+		if err := db.QueryRow(ctx, existsWarehouse, value4.WarehouseId).Scan(&exist); err != nil {
 			s.Logger.Error("Ошибка в проверке на существование склада")
 		}
 	}
@@ -49,14 +41,14 @@ func (s *InventoryService) Exists(a int, value model.Inventory, value2 model.New
 	return exist
 }
 
-func (s *InventoryService) GetAllAttributes(productIDs []string) (map[string]map[string]string, error) {
+func GetAllAttributes(db *pgx.Conn, productIDs []string) (map[string]map[string]string, error) {
 	if len(productIDs) == 0 {
 		return make(map[string]map[string]string), nil
 	}
 
-	query := `SELECT product_id, key, value FROM product_key_values WHERE product_id = ANY($1)`
+	query := `SELECT productId, key, value FROM product_key_values WHERE productId = ANY($1)`
 
-	rows, err := s.Db.Query(context.Background(), query, productIDs)
+	rows, err := db.Query(context.Background(), query, productIDs)
 	if err != nil {
 		return nil, fmt.Errorf("query attributes failed: %w", err)
 	}
@@ -80,6 +72,7 @@ func (s *InventoryService) GetAllAttributes(productIDs []string) (map[string]map
 
 	return attrs, nil
 }
+
 func ConvertAttributesToSlice(attrs map[string]string) []map[string]string {
 	var result []map[string]string
 
@@ -94,7 +87,7 @@ func Slices(count model.NewInventory) ([]string, []int) {
 	quantities := make([]int, len(count.Product))
 
 	for i, p := range count.Product {
-		productIDs[i] = p.Product_id
+		productIDs[i] = p.ProductId
 		quantities[i] = p.Quantity
 	}
 

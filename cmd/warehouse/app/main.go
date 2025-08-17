@@ -17,7 +17,7 @@ package app
 
 import (
 	"apiGo/cmd/warehouse/host"
-	"apiGo/internal/warehouses/config/zapConfig"
+	"apiGo/pkg/logger"
 
 	"context"
 	"os"
@@ -31,7 +31,7 @@ import (
 // @Summary		Запуск приложения
 // @Description	Основная точка входа для API сервиса
 func main() {
-	logger := zapConfig.ZapFunc()
+	logger := logger.ZapFunc()
 
 	if err := realMain(logger); err != nil {
 		logger.Error(err.Error())

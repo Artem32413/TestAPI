@@ -1,10 +1,12 @@
-package appProducts
+package appProduct
 
 import (
-	"apiGo/internal/components"
-	"apiGo/internal/product/config/settings"
-	"apiGo/internal/product/model/interfaces"
 	model "apiGo/internal/product/model/structs"
+	"apiGo/internal/product/service"
+	"apiGo/pkg/errors"
+	"apiGo/pkg/headers"
+	"apiGo/pkg/requests"
+
 	"context"
 	"net/http"
 	"time"
@@ -12,13 +14,16 @@ import (
 	"go.uber.org/zap"
 )
 
-
-type InventoryService struct {
-	*settings.Settings
+type ProductHandler struct {
+	svc    *service.ProductService
+	logger *zap.Logger
 }
 
-var st struct{
-	interfaces.ProductsRepo
+func New(svc *service.ProductService, logger *zap.Logger) *ProductHandler {
+	return &ProductHandler{
+		svc:    svc,
+		logger: logger,
+	}
 }
 
 // DisplayAllProducts возвращает список всех товаров
@@ -31,30 +36,23 @@ var st struct{
 // @Failure 400 "Ошибка в запросе"
 // @Failure 500 "Внутренняя ошибка сервера"
 // @Router /products/all/ [get]
-func (s *InventoryService) DisplayAllProducts(w http.ResponseWriter, r *http.Request) {
+func (p *ProductHandler) DisplayAllProducts(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	prod, err := st.DisplayProducts(ctx)
+	prod, err := p.svc.DisplayAllProductsLogic(ctx)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error("Ошибка в выведении всех товаров", zap.Error(err))
+		errors.HandleError(p.logger, w, err, http.StatusBadRequest)
 		return
 	}
 
-	jsData, err := components.NewMarshall(prod)
+	jsData, err := requests.NewMarshall(prod)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error("Ошибка в преобразовании JSON (Товары)", zap.Error(err))
+		errors.HandleError(p.logger, w, err, http.StatusBadRequest)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	if _, err := w.Write(jsData); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error("Ошибка в выводе данных (Товары)", zap.Error(err))
-		return
-	}
+	headers.HeaderWithText(p.logger, w, jsData)
 }
 
 // AddingNewProducts добавляет новый товар
@@ -68,27 +66,25 @@ func (s *InventoryService) DisplayAllProducts(w http.ResponseWriter, r *http.Req
 // @Failure 400 "Неверные входные данные"
 // @Failure 500 "Внутренняя ошибка сервера"
 // @Router /products/add/ [post]
-func (s *InventoryService) AddingNewProducts(w http.ResponseWriter, r *http.Request) {
+func (p *ProductHandler) AddingNewProducts(w http.ResponseWriter, r *http.Request) {
 	var products model.Products
 
 	defer r.Body.Close()
 
-	if err := components.NewDec(r, &products); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error(err.Error())
+	if err := requests.NewDec(r, &products); err != nil {
+		errors.HandleError(p.logger, w, err, http.StatusBadRequest)
 		return
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	if err := st.AdditionProducts(ctx, products); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error(err.Error())
+	if err := p.svc.AddingNewProductsLogic(ctx, products); err != nil {
+		errors.HandleError(p.logger, w, err, http.StatusBadRequest)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	headers.HeaderWithText(p.logger, w, []byte("Успешное добавление товара"))
 }
 
 // UpdateProduct обновляет данные товара
@@ -103,23 +99,21 @@ func (s *InventoryService) AddingNewProducts(w http.ResponseWriter, r *http.Requ
 // @Failure 404 "Товар не найден"
 // @Failure 500 "Внутренняя ошибка сервера"
 // @Router /products/update/ [put]
-func (s *InventoryService) UpdateProduct(w http.ResponseWriter, r *http.Request) {
+func (p *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	var products model.Products
 
-	if err := components.NewDec(r, &products); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error(err.Error())
+	if err := requests.NewDec(r, &products); err != nil {
+		errors.HandleError(p.logger, w, err, http.StatusBadRequest)
 		return
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	if err := st.UpdateProd(ctx, products); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error(err.Error())
+	if err := p.svc.UpdateProductLogic(ctx, products); err != nil {
+		errors.HandleError(p.logger, w, err, http.StatusBadRequest)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	headers.HeaderWithText(p.logger, w, []byte("Успешное обновление товара"))
 }

@@ -4,6 +4,7 @@ import (
 	model "apiGo/internal/warehouses/model/structs"
 	"apiGo/internal/warehouses/service"
 	"apiGo/pkg/errors"
+	"apiGo/pkg/headers"
 	"apiGo/pkg/requests"
 	"context"
 	"fmt"
@@ -44,8 +45,6 @@ func (wr *WarehousesHandler) AddingNewWarehouses(w http.ResponseWriter, r *http.
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-
 	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 	defer cancel()
 
@@ -53,6 +52,8 @@ func (wr *WarehousesHandler) AddingNewWarehouses(w http.ResponseWriter, r *http.
 		errors.HandleError(wr.logger, w, err, http.StatusBadRequest)
 		return
 	}
+
+	headers.HeaderWithText(wr.logger, w, []byte("Успешное добавление склада"))
 }
 
 // DisplayAllWarehouses получает список всех складов
@@ -80,10 +81,5 @@ func (wr *WarehousesHandler) DisplayAllWarehouses(w http.ResponseWriter, r *http
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-
-	if _, err := w.Write(jsData); err != nil {
-		errors.HandleError(wr.logger, w, fmt.Errorf("Ошибка в выводе данных (Склады)"), http.StatusBadRequest)
-		return
-	}
+	headers.HeaderWithText(wr.logger, w, jsData)
 }

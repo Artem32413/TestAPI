@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	addingAWarehouse = `INSERT INTO WarehousesTable (warehouse_id, addr) VALUES ($1, $2)`
-	displayWarehouse = `SELECT * FROM WarehousesTable`
+	addingAWarehouse = `INSERT INTO Warehouses (warehouseId, addr) VALUES ($1, $2)`
+	displayWarehouse = `SELECT * FROM Warehouses`
 )
 
 type DBService struct {
@@ -31,9 +31,9 @@ func (d *DBService) AddingNewWarehousesSQL(ctx context.Context, warehouses struc
 
 	newUuid := uuid.New().String()
 
-	warehouses.Warehouse_id = newUuid
+	warehouses.WarehouseId = newUuid
 
-	if _, err := d.db.Exec(ctx, addingAWarehouse, warehouses.Warehouse_id, warehouses.Addr); err != nil {
+	if _, err := d.db.Exec(ctx, addingAWarehouse, warehouses.WarehouseId, warehouses.Addr); err != nil {
 		return err
 	}
 
@@ -52,11 +52,11 @@ func (d *DBService) DisplayAllWarehousesSQL(ctx context.Context) ([]structs.Ware
 	for r.Next() {
 		var nw structs.Warehouses
 
-		if err = r.Scan(&nw.Id, &nw.Addr, &nw.Warehouse_id); err != nil {
+		if err = r.Scan(&nw.Id, &nw.Addr, &nw.WarehouseId); err != nil {
 			return nil, err
 		}
 
-		newSl = append(newSl, structs.Warehouses{Id: nw.Id, Addr: nw.Addr, Warehouse_id: nw.Warehouse_id})
+		newSl = append(newSl, structs.Warehouses{Id: nw.Id, Addr: nw.Addr, WarehouseId: nw.WarehouseId})
 	}
 
 	return newSl, nil

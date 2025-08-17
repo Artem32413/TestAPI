@@ -61,7 +61,7 @@ func (s *AnalyticsHandler) AnalyticsAll(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	headers.HeaderWithSub(s.logger, w, jsData)
+	headers.HeaderWithText(s.logger, w, jsData)
 }
 
 // Top обрабатывает запрос топовых складов
@@ -90,5 +90,5 @@ func (s *AnalyticsHandler) AnalyticsTop(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	headers.HeaderWithSub(s.logger, w, jsData)
+	headers.HeaderWithText(s.logger, w, jsData)
 }

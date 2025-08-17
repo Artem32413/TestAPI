@@ -1,10 +1,11 @@
 package appInventory
 
 import (
-	"apiGo/internal/components"
-	"apiGo/internal/inventory/config/settings"
-	"apiGo/internal/inventory/model/interfaces"
-	model "apiGo/internal/inventory/model/structs"
+	"apiGo/internal/inventory/model/structs"
+	"apiGo/internal/inventory/service"
+	"apiGo/pkg/errors"
+	"apiGo/pkg/headers"
+	"apiGo/pkg/requests"
 	"context"
 	"net/http"
 	"time"
@@ -12,12 +13,16 @@ import (
 	"go.uber.org/zap"
 )
 
-type InventoryService struct {
-	*settings.Settings
+type InventoryHandler struct {
+	svc    *service.InventoryService
+	logger *zap.Logger
 }
 
-var st struct{
-	interfaces.InventoryRepo
+func New(svc *service.InventoryService, logger *zap.Logger) *InventoryHandler {
+	return &InventoryHandler{
+		svc:    svc,
+		logger: logger,
+	}
 }
 
 // SetPrice устанавливает цену товара на складе
@@ -31,26 +36,24 @@ var st struct{
 // @Failure 400 "Неверные входные данные"
 // @Failure 500 "Внутренняя ошибка сервера"
 // @Router /inventory/price/ [patch]
-func (s *InventoryService) SetPrice(w http.ResponseWriter, r *http.Request) {
+func (i *InventoryHandler) SetPrice(w http.ResponseWriter, r *http.Request) {
 
-	var price model.Inventory
+	var price structs.Inventory
 
-	if err := components.NewDec(r, &price); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error(err.Error())
+	if err := requests.NewDec(r, &price); err != nil {
+		errors.HandleError(i.logger, w, err, http.StatusBadRequest)
 		return
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	if err := st.SetPriceDB(ctx, price); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error(err.Error())
+	if err := i.svc.SetPriceLogic(ctx, price); err != nil {
+		errors.HandleError(i.logger, w, err, http.StatusBadRequest)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	headers.HeaderWithText(i.logger, w, []byte("Цена успешно установлена"))
 }
 
 // UpdateInventory обновляет количество товара
@@ -64,26 +67,23 @@ func (s *InventoryService) SetPrice(w http.ResponseWriter, r *http.Request) {
 // @Failure 400 "Неверные входные данные"
 // @Failure 500 "Внутренняя ошибка сервера"
 // @Router /inventory/updateQuantity/ [patch]
-func (s *InventoryService) UpdateInventory(w http.ResponseWriter, r *http.Request) {
-	var inventory model.Inventory
+func (i *InventoryHandler) UpdateInventory(w http.ResponseWriter, r *http.Request) {
+	var inventory structs.Inventory
 
-	if err := components.NewDec(r, &inventory); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error(err.Error())
+	if err := requests.NewDec(r, &inventory); err != nil {
+		errors.HandleError(i.logger, w, err, http.StatusBadRequest)
 		return
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	if err := st.UpdateQuantity(ctx, inventory); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error(err.Error())
+	if err := i.svc.UpdateInventoryLogic(ctx, inventory); err != nil {
+		errors.HandleError(i.logger, w, err, http.StatusBadRequest)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-
+	headers.HeaderWithText(i.logger, w, []byte("Количество успешно обновлено"))
 }
 
 // DiscountInventory устанавливает скидку на товары
@@ -97,26 +97,24 @@ func (s *InventoryService) UpdateInventory(w http.ResponseWriter, r *http.Reques
 // @Failure 400 "Неверные входные данные"
 // @Failure 500 "Внутренняя ошибка сервера"
 // @Router /inventory/discount/ [patch]
-func (s *InventoryService) DiscountInventory(w http.ResponseWriter, r *http.Request) {
+func (i *InventoryHandler) DiscountInventory(w http.ResponseWriter, r *http.Request) {
 
-	var discount model.NewInventoryDiscount
+	var discount structs.NewInventoryDiscount
 
-	if err := components.NewDec(r, &discount); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error(err.Error())
+	if err := requests.NewDec(r, &discount); err != nil {
+		errors.HandleError(i.logger, w, err, http.StatusBadRequest)
 		return
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	if err := st.CreatingADiscount(ctx, discount); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error(err.Error())
+	if err := i.svc.DiscountInventoryLogic(ctx, discount); err != nil {
+		errors.HandleError(i.logger, w, err, http.StatusBadRequest)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	headers.HeaderWithText(i.logger, w, []byte("Скидка успешно применена"))
 }
 
 // ListOfGoods возвращает список товаров на складе
@@ -130,39 +128,30 @@ func (s *InventoryService) DiscountInventory(w http.ResponseWriter, r *http.Requ
 // @Failure 400 "Неверные входные данные"
 // @Failure 500 "Внутренняя ошибка сервера"
 // @Router /inventory/goods/ [patch]
-func (s *InventoryService) ListOfGoods(w http.ResponseWriter, r *http.Request) {
-	var product model.WarehousePagination
+func (i *InventoryHandler) ListOfGoods(w http.ResponseWriter, r *http.Request) {
+	var product structs.WarehousePagination
 
-	if err := components.NewDec(r, &product); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error(err.Error())
+	if err := requests.NewDec(r, &product); err != nil {
+		errors.HandleError(i.logger, w, err, http.StatusBadRequest)
 		return
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	res, err := st.ListProductsByWarehouse(ctx, product)
+	res, err := i.svc.ListOfGoodsLogic(ctx, product)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error(err.Error())
+		errors.HandleError(i.logger, w, err, http.StatusBadRequest)
 		return
 	}
 
-	jsData, err := components.NewMarshall(res)
+	jsData, err := requests.NewMarshall(res)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error("Ошибка в преобразовании JSON (Товары со склада)", zap.Error(err))
+		errors.HandleError(i.logger, w, err, http.StatusBadRequest)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-
-	if _, err := w.Write(jsData); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error("Ошибка в выводе данных (Товары со склада)", zap.Error(err))
-		return
-	}
+	headers.HeaderWithText(i.logger, w, jsData)
 }
 
 // ReceivingGoods возвращает полную информацию о товаре
@@ -176,39 +165,30 @@ func (s *InventoryService) ListOfGoods(w http.ResponseWriter, r *http.Request) {
 // @Failure 400 "Неверные входные данные"
 // @Failure 500 "Внутренняя ошибка сервера"
 // @Router /inventory/product/ [patch]
-func (s *InventoryService) ReceivingGoods(w http.ResponseWriter, r *http.Request) {
-	var product model.Inventory
+func (i *InventoryHandler) ReceivingGoods(w http.ResponseWriter, r *http.Request) {
+	var product structs.Inventory
 
-	if err := components.NewDec(r, &product); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error(err.Error())
+	if err := requests.NewDec(r, &product); err != nil {
+		errors.HandleError(i.logger, w, err, http.StatusBadRequest)
 		return
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	res, err := st.ListProduct(ctx, product)
+	res, err := i.svc.ReceivingGoodsLogic(ctx, product)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error(err.Error())
+		errors.HandleError(i.logger, w, err, http.StatusBadRequest)
 		return
 	}
 
-	jsData, err := components.NewMarshall(res)
+	jsData, err := requests.NewMarshall(res)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error("Ошибка в преобразовании JSON (Товара со склада)", zap.Error(err))
+		errors.HandleError(i.logger, w, err, http.StatusBadRequest)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-
-	if _, err := w.Write(jsData); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error("Ошибка в выводе данных (Товара со склада)", zap.Error(err))
-		return
-	}
+	headers.HeaderWithText(i.logger, w, jsData)
 }
 
 // CountPrice подсчитывает стоимость товаров
@@ -222,39 +202,30 @@ func (s *InventoryService) ReceivingGoods(w http.ResponseWriter, r *http.Request
 // @Failure 400 "Неверно введены данные"
 // @Failure 500 "Внутренняя ошибка сервера"
 // @Router /inventory/count/ [patch]
-func (s *InventoryService) CountPrice(w http.ResponseWriter, r *http.Request) {
-	var count model.NewInventory
+func (i *InventoryHandler) CountPrice(w http.ResponseWriter, r *http.Request) {
+	var count structs.NewInventory
 
-	if err := components.NewDec(r, &count); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error(err.Error())
+	if err := requests.NewDec(r, &count); err != nil {
+		errors.HandleError(i.logger, w, err, http.StatusBadRequest)
 		return
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	res, err := st.ListCount(ctx, count)
+	res, err := i.svc.CountPriceLogic(ctx, count)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error(err.Error())
+		errors.HandleError(i.logger, w, err, http.StatusBadRequest)
 		return
 	}
 
-	jsData, err := components.NewMarshall(res)
+	jsData, err := requests.NewMarshall(res)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error("Ошибка в преобразовании JSON (Подсчёта)", zap.Error(err))
+		errors.HandleError(i.logger, w, err, http.StatusBadRequest)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-
-	if _, err := w.Write(jsData); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error("Ошибка в выводе данных (Подсчёта)", zap.Error(err))
-		return
-	}
+	headers.HeaderWithText(i.logger, w, jsData)
 }
 
 // PurchaseProduct обрабатывает покупку товаров
@@ -268,23 +239,21 @@ func (s *InventoryService) CountPrice(w http.ResponseWriter, r *http.Request) {
 // @Failure 400 "Неверные входные данные или недостаточно товара"
 // @Failure 500 "Внутренняя ошибка сервера"
 // @Router /inventory/purchase/ [patch]
-func (s *InventoryService) PurchaseProduct(w http.ResponseWriter, r *http.Request) {
-	var purchase model.NewInventory
+func (i *InventoryHandler) PurchaseProduct(w http.ResponseWriter, r *http.Request) {
+	var purchase structs.NewInventory
 
-	if err := components.NewDec(r, &purchase); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error(err.Error())
+	if err := requests.NewDec(r, &purchase); err != nil {
+		errors.HandleError(i.logger, w, err, http.StatusBadRequest)
 		return
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	if err := st.Purchase(ctx, purchase); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		s.Logger.Error(err.Error())
+	if err := i.svc.PurchaseProductLogic(ctx, purchase); err != nil {
+		errors.HandleError(i.logger, w, err, http.StatusBadRequest)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	headers.HeaderWithText(i.logger, w, []byte("Покупка успешно обработана"))
 }

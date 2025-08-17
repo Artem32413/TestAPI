@@ -1,71 +1,40 @@
 package transport
 
 import (
-	"apiGo/internal/product/config/settings"
-	"apiGo/internal/product/model/interfaces"
+	appAnalytics "apiGo/internal/product/appProduct"
+	"apiGo/internal/product/config/databaseConfig"
+	"apiGo/internal/product/database/postgreSQL"
+	"apiGo/internal/product/service"
+	swaggerpkg "apiGo/internal/product/transport/swaggerPkg"
+	"context"
 
 	"net/http"
+
+	"go.uber.org/zap"
 )
 
-type InventoryService struct {
-	*settings.Settings
-	interfaces.HandlersProducts
-}
-
-func AddSwaggerRoutes(mux *http.ServeMux) {
-	// Страница с Swagger UI (используем CDN)
-	mux.HandleFunc("/docs/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html")
-		w.Write([]byte(`
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<title>Swagger UI</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist/swagger-ui.css" />
-</head>
-<body>
-<div id="swagger-ui"></div>
-<script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist/swagger-ui-bundle.js"></script>
-<script>
-  const ui = SwaggerUIBundle({
-    url: "/docs/swagger.json",
-    dom_id: '#swagger-ui',
-  });
-</script>
-</body>
-</html>`))
-	})
-
-	// Отдача файла swagger.json
-	mux.HandleFunc("/docs/swagger.json", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./docs/swagger.json")
-	})
-}
-
-func AllHandles() *http.ServeMux {
-	s, err := settings.Set()
+func AllHandles(ctx context.Context, log *zap.Logger) *http.ServeMux {
+	db, err := databaseConfig.ConstructorDB(ctx)
 
 	if err != nil {
-		s.Logger.Error(err.Error())
+		log.Error(err.Error())
 		return nil
 	}
 
-	var h interfaces.HandlersProducts
-
-	h = &InventoryService{Settings: s}
+	repo := postgreSQL.New(db)
+	svc := service.New(repo)
+	handlers := appAnalytics.New(svc, log)
 
 	mux := http.NewServeMux()
-
-	AddSwaggerRoutes(mux)
+	swaggerpkg.AddSwaggerRoutes(mux)
 
 	// Товары
-	mux.HandleFunc("/products/add/", h.AddingNewProducts)
-	mux.HandleFunc("/products/all/", h.DisplayAllProducts)
-	mux.HandleFunc("/products/update/", h.UpdateProduct)
+	mux.HandleFunc("/products/add/", handlers.AddingNewProducts)
+	mux.HandleFunc("/products/all/", handlers.DisplayAllProducts)
+	mux.HandleFunc("/products/update/", handlers.UpdateProduct)
 	mux.HandleFunc("/api/health/", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
-	
+
 	return mux
 }

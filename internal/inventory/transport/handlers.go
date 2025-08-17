@@ -1,72 +1,41 @@
 package transport
 
 import (
-	"apiGo/internal/inventory/config/settings"
-	"apiGo/internal/inventory/model/interfaces"
+	swaggerpkg "apiGo/internal/analytics/transport/swaggerPkg"
+	"apiGo/internal/inventory/appInventory"
+	"apiGo/internal/inventory/config/databaseConfig"
+	"apiGo/internal/inventory/database/postgreSQL"
+	"apiGo/internal/inventory/service"
 
+	"context"
 	"net/http"
+
+	"go.uber.org/zap"
 )
 
-type InventoryService struct {
-	*settings.Settings
-	interfaces.HandlersInventory
-}
-
-func AddSwaggerRoutes(mux *http.ServeMux) {
-	// Страница с Swagger UI (используем CDN)
-	mux.HandleFunc("/docs/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html")
-		w.Write([]byte(`
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<title>Swagger UI</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist/swagger-ui.css" />
-</head>
-<body>
-<div id="swagger-ui"></div>
-<script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist/swagger-ui-bundle.js"></script>
-<script>
-  const ui = SwaggerUIBundle({
-    url: "/docs/swagger.json",
-    dom_id: '#swagger-ui',
-  });
-</script>
-</body>
-</html>`))
-	})
-
-	// Отдача файла swagger.json
-	mux.HandleFunc("/docs/swagger.json", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./docs/swagger.json")
-	})
-}
-
-func AllHandles() *http.ServeMux {
-	s, err := settings.Set()
+func AllHandles(ctx context.Context, log *zap.Logger) *http.ServeMux {
+	db, err := databaseConfig.ConstructorDB(ctx)
 
 	if err != nil {
-		s.Logger.Error(err.Error())
+		log.Error(err.Error())
 		return nil
 	}
 
-	var h interfaces.HandlersInventory
-
-	h = &InventoryService{Settings: s}
-
+	repo := postgreSQL.New(db)
+	svc := service.New(repo)
+	handlers := appInventory.New(svc, log)
 	mux := http.NewServeMux()
 
-	AddSwaggerRoutes(mux)
+	swaggerpkg.AddSwaggerRoutes(mux)
 
 	// Инвентаризация
-	mux.HandleFunc("/inventory/price/", h.SetPrice)
-	mux.HandleFunc("/inventory/updateQuantity/", h.UpdateInventory)
-	mux.HandleFunc("/inventory/discount/", h.DiscountInventory)
-	mux.HandleFunc("/inventory/goods/", h.ListOfGoods)
-	mux.HandleFunc("/inventory/product/", h.ReceivingGoods)
-	mux.HandleFunc("/inventory/count/", h.CountPrice)
-	mux.HandleFunc("/inventory/purchase/", h.PurchaseProduct)
+	mux.HandleFunc("/inventory/price/", handlers.SetPrice)
+	mux.HandleFunc("/inventory/updateQuantity/", handlers.UpdateInventory)
+	mux.HandleFunc("/inventory/discount/", handlers.DiscountInventory)
+	mux.HandleFunc("/inventory/goods/", handlers.ListOfGoods)
+	mux.HandleFunc("/inventory/product/", handlers.ReceivingGoods)
+	mux.HandleFunc("/inventory/count/", handlers.CountPrice)
+	mux.HandleFunc("/inventory/purchase/", handlers.PurchaseProduct)
 	mux.HandleFunc("/api/health/", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
