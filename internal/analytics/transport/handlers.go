@@ -23,9 +23,9 @@ func AllHandles(ctx context.Context, log *zap.Logger) *http.ServeMux {
 	}
 
 	repo := postgreSQL.New(db)
-    svc := service.New(repo)
-    handlers := appAnalytics.New(svc, log)
-	
+	svc := service.New(repo)
+	handlers := appAnalytics.New(svc, log)
+
 	mux := http.NewServeMux()
 
 	swaggerpkg.AddSwaggerRoutes(mux)

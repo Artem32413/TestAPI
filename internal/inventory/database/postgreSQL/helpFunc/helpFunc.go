@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/jackc/pgx/v5"
+	"go.uber.org/zap"
 )
 
 var (
@@ -13,28 +14,29 @@ var (
 	exists          = `SELECT EXISTS(SELECT 1 FROM Inventory WHERE warehouseId = $1 AND productId = $2)`
 )
 
-func Exists(db *pgx.Conn, ctx context.Context, a int, value model.Inventory, value2 model.NewInventoryDiscount, value3 model.NewInventory, value4 model.WarehousePagination) bool {
+func Exists(log *zap.Logger, db *pgx.Conn, ctx context.Context, a int, value model.Inventory, value2 model.NewInventoryDiscount, value3 model.NewInventory, value4 model.WarehousePagination) bool {
 	var exist bool
 
-	if a == 1 {
+	switch a {
+	case 1:
 		if err := db.QueryRow(ctx, exists, value.WarehouseId, value.ProductId).Scan(&exist); err != nil {
-			s.Logger.Error("Ошибка в проверке на существование склада и товара")
+			log.Error("Ошибка в проверке на существование склада и товара")
 		}
-	} else if a == 2 {
+	case 2:
 		if err := db.QueryRow(ctx, existsWarehouse, value.WarehouseId).Scan(&exist); err != nil {
-			s.Logger.Error("Ошибка в проверке на существование склада")
+			log.Error("Ошибка в проверке на существование склада")
 		}
-	} else if a == 3 {
+	case 3:
 		if err := db.QueryRow(ctx, existsWarehouse, value2.WarehouseId).Scan(&exist); err != nil {
-			s.Logger.Error("Ошибка в проверке на существование склада")
+			log.Error("Ошибка в проверке на существование склада")
 		}
-	} else if a == 4 {
+	case 4:
 		if err := db.QueryRow(ctx, existsWarehouse, value3.WarehouseId).Scan(&exist); err != nil {
-			s.Logger.Error("Ошибка в проверке на существование склада")
+			log.Error("Ошибка в проверке на существование склада")
 		}
-	} else {
+	default:
 		if err := db.QueryRow(ctx, existsWarehouse, value4.WarehouseId).Scan(&exist); err != nil {
-			s.Logger.Error("Ошибка в проверке на существование склада")
+			log.Error("Ошибка в проверке на существование склада")
 		}
 	}
 

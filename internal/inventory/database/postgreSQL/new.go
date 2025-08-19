@@ -1,5 +1,11 @@
 package postgreSQL
 
+import (
+	"apiGo/internal/inventory/config/databaseConfig"
+
+	"github.com/jackc/pgx/v5"
+)
+
 var (
 	priceInsert    = `INSERT INTO Inventory (warehouse_id, product_id, quantity, price, discount) VALUES ($1, $2, $3, $4, $5)`
 	priceUpdate    = `UPDATE Inventory SET price = $1 WHERE warehouse_id = $2 AND product_id = $3`
@@ -56,3 +62,11 @@ var (
 									sold_goods = analytics.sold_goods + EXCLUDED.sold_goods,
 									total_sum = analytics.total_sum + EXCLUDED.total_sum`
 )
+
+type DBService struct {
+	db *pgx.Conn
+}
+
+func New(db *databaseConfig.PostgreSQL) *DBService {
+	return &DBService{db: db.Db}
+}

@@ -1,12 +1,12 @@
 CREATE TABLE IF NOT EXISTS WarehousesTable (
     id SERIAL PRIMARY KEY,
-    warehouse_id VARCHAR(255) NOT NULL,
+    warehouseId VARCHAR(255) NOT NULL,
     addr VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS Products (
     id SERIAL PRIMARY KEY,
-    product_id VARCHAR(255) NOT NULL UNIQUE,
+    productId VARCHAR(255) NOT NULL UNIQUE,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     weight NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
@@ -14,30 +14,30 @@ CREATE TABLE IF NOT EXISTS Products (
 );
 
 CREATE TABLE IF NOT EXISTS ProductKeyValues (
-    product_id VARCHAR(255) NOT NULL,
+    productId VARCHAR(255) NOT NULL,
     key VARCHAR(255) NOT NULL,
     value VARCHAR(255) NOT NULL,
-    PRIMARY KEY (product_id, key)
+    PRIMARY KEY (productId, key)
 );
 
 CREATE TABLE IF NOT EXISTS Inventory (
     id SERIAL PRIMARY KEY,
-    warehouse_id VARCHAR(255) NOT NULL,
-    product_id VARCHAR(255) NOT NULL,
+    warehouseId VARCHAR(255) NOT NULL,
+    productId VARCHAR(255) NOT NULL,
     quantity INTEGER NOT NULL DEFAULT 0,
     price NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
     discount NUMERIC(5, 2) NOT NULL DEFAULT 0.00,
-    CONSTRAINT uc_warehouse_product UNIQUE (warehouse_id, product_id)
+    CONSTRAINT ucWarehouseProduct UNIQUE (warehouseId, productId)
 );
 
 CREATE TABLE IF NOT EXISTS Analytics (
     id SERIAL PRIMARY KEY,
-    warehouse_id VARCHAR(255) NOT NULL,
-    product_id VARCHAR(255) NOT NULL,
-    sold_goods INTEGER NOT NULL DEFAULT 0,
-    total_sum NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
-    CONSTRAINT uc_analytics_record UNIQUE (
-        warehouse_id,
-        product_id
+    warehouseId VARCHAR(255) NOT NULL,
+    productId VARCHAR(255) NOT NULL,
+    soldGoods INTEGER NOT NULL DEFAULT 0,
+    totalSum NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
+    CONSTRAINT ucAnalyticsRecord UNIQUE (
+        warehouseId,
+        productId
     )
 );
