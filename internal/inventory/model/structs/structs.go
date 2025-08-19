@@ -100,3 +100,8 @@ type SummingUp struct {
 	Sum             float64           `json:"sum"`
 	Characteristics map[string]string `json:"characteristics,omitempty"`
 }
+
+type ErrorResponse struct {
+    Status  int    `json:"status"`
+    Message string `json:"message"`
+}
