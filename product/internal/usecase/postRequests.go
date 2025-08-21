@@ -32,7 +32,7 @@ func (p *ProductHandler) AddingNewProducts(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 	defer cancel()
 
 	if err := p.svc.AddingNewProductsLogic(ctx, products); err != nil {

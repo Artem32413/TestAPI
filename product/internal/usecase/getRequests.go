@@ -21,7 +21,7 @@ import (
 // @Failure 500 "Внутренняя ошибка сервера"
 // @Router /products/all/ [get]
 func (p *ProductHandler) DisplayAllProducts(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 	defer cancel()
 
 	prod, err := p.svc.DisplayAllProductsLogic(ctx)

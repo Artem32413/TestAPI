@@ -31,10 +31,13 @@ func (d *DBService) UpdateProductSQL(ctx context.Context, products structs.Produ
 		return fmt.Errorf("Значение ниже 0: %d", rowsAffected)
 	}
 
-	for key, value := range products.KeyValue {
-		if _, err := d.db.Exec(ctx, updateValue, value, products.ProductId, key); err != nil {
-			return err
+	for _, m := range products.KeyValue {
+		for key, value := range m {
+			if _, err := d.db.Exec(ctx, updateValue, value, products.ProductId, key); err != nil {
+				return fmt.Errorf("Ошибка в цикле с ключ-значением: %v", err)
+			}
 		}
+
 	}
 
 	return nil

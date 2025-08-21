@@ -10,11 +10,13 @@ import (
 	"go.uber.org/zap"
 )
 
-func StartMain(ctx context.Context, logger *zap.Logger) error {
+func StartMain(ctx context.Context, log *zap.Logger) error {
 
-	logger.Info("Сервер запущен")
+	log.Info("Сервис Склады запущен",
+		zap.Int("Порт", 8081),
+	)
 
-	mux := transport.AllHandles(ctx, logger)
+	mux := transport.AllHandles(ctx, log)
 
 	s := http.Server{
 		Addr:    ":8081",
@@ -23,7 +25,7 @@ func StartMain(ctx context.Context, logger *zap.Logger) error {
 
 	go func() {
 		<-ctx.Done()
-		logger.Info("Сервер завершен")
+		log.Info("Сервер завершен")
 		s.Shutdown(ctx)
 	}()
 

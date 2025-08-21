@@ -13,17 +13,17 @@
 //	@BasePath	/api/v1
 //	@schemes	http
 
-package app
+package main
 
 import (
-	"inventory/cmd/host"
-	"inventory/pkg/logger"
+	"analytics/cmd/host"
+	"analytics/pkg/logger"
 
 	"context"
 	"os"
 	"os/signal"
 
-	_ "inventory/docs"
+	_ "analytics/docs"
 
 	"go.uber.org/zap"
 )

@@ -1,9 +1,9 @@
 FROM golang:latest AS builder
-WORKDIR /app
-COPY ../go.mod ../go.sum ./
+WORKDIR /inventory
+COPY inventory/go.mod inventory/go.sum ./
 RUN go mod download
-COPY ../ ./
-RUN go build -o main ./cmd  
+COPY inventory/. .
+RUN go build -o main ./cmd 
 
-EXPOSE 8080  
+EXPOSE 8081  
 CMD [ "./main" ]  

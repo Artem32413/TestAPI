@@ -36,7 +36,7 @@ func GetAllAttributes(db *pgx.Conn, ctx context.Context, productIDs []string) (m
 	for rows.Next() {
 		var productID, key, value string
 		if err := rows.Scan(&productID, &key, &value); err != nil {
-			return nil, fmt.Errorf("scan attribute failed: %w", err)
+			return nil, fmt.Errorf("Ошибка в сканировании клю-значения: %w", err)
 		}
 
 		if _, exists := attrs[productID]; !exists {
