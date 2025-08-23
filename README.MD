@@ -33,7 +33,20 @@ docker-compose -f build/docker-compose.yml up --build
 docker-compose -f build/docker-compose.yml down
 ```
 ### Запуск Swagger документации
-При сборке образа проекта 
+При сборке образа проекта:
+#### Аналитика 
 ``` 
 http://localhost:8080/docs/
+```
+#### Инвентаризация 
+``` 
+http://localhost:8083/docs/
+```
+#### Товары 
+``` 
+http://localhost:8082/docs/
+```
+#### Склады  
+``` 
+http://localhost:8081/docs/
 ```
