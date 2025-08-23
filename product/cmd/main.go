@@ -18,9 +18,9 @@ package main
 import (
 	"product/cmd/host"
 	"product/pkg/logger"
+	"syscall"
 
 	"context"
-	"os"
 	"os/signal"
 
 	_ "product/docs"
@@ -44,7 +44,7 @@ func main() {
 //	@Summary		Основная логика приложения
 //	@Description	Инициализирует контекст и запускает API сервер
 func realMain(logger *zap.Logger) error {
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer cancel()
 
 	return host.StartMain(ctx, logger)

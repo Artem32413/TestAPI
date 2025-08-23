@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # База данных (общая для всех сервисов)
+
   db:
     image: postgres:15-alpine
     environment:
@@ -21,7 +21,6 @@ services:
     networks:
       - app-network
 
-  # Миграции (общие для всех сервисов)
   migrate:
     image: migrate/migrate:v4.16.2
     depends_on:
@@ -35,7 +34,7 @@ services:
 
   inventory-service:
     build:
-      context: ./ # путь к вашему микросервису
+      context: ./ 
       dockerfile: ./inventory/build/Dockerfile
     depends_on:
       db:
@@ -53,7 +52,7 @@ services:
 
   warehouses-service:
     build:
-      context: . # путь к вашему микросервису
+      context: . 
       dockerfile: ./warehouses/build/Dockerfile
     depends_on:
       db:
@@ -87,10 +86,9 @@ services:
     networks:
       - app-network
 
-  # Микросервис 4 - Аналитика
   analytics-service:
     build:
-      context: . # путь к вашему микросервису
+      context: . 
       dockerfile: ./analytics/build/Dockerfile
     depends_on:
       db:
