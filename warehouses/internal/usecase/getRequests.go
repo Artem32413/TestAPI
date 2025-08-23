@@ -24,7 +24,7 @@ func (wr *WarehousesHandler) DisplayAllWarehouses(w http.ResponseWriter, r *http
 	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 	defer cancel()
 
-	AllWarehouses, err := wr.svc.DisplayAllWarehousesLogic(ctx)
+	AllWarehouses, err := wr.svc.DisplayAllWarehousesLogic(wr.logger, ctx)
 	if err != nil {
 		errors.HandleError(wr.logger, w, err, http.StatusBadRequest)
 		return

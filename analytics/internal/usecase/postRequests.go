@@ -34,7 +34,7 @@ func (s *AnalyticsHandler) AnalyticsAll(w http.ResponseWriter, r *http.Request) 
 	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 	defer cancel()
 
-	res, err := s.svc.AnalyticsAllLogic(ctx, a)
+	res, err := s.svc.AnalyticsAllLogic(s.logger, ctx, a)
 	if err != nil {
 		errors.HandleError(s.logger, w, err, http.StatusBadRequest)
 		return

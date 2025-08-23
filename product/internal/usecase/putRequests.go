@@ -34,7 +34,7 @@ func (p *ProductHandler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 	defer cancel()
 
-	if err := p.svc.UpdateProductLogic(ctx, products); err != nil {
+	if err := p.svc.UpdateProductLogic(p.logger, ctx, products); err != nil {
 		errors.HandleError(p.logger, w, err, http.StatusBadRequest)
 		return
 	}

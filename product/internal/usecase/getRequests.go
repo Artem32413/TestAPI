@@ -24,7 +24,7 @@ func (p *ProductHandler) DisplayAllProducts(w http.ResponseWriter, r *http.Reque
 	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 	defer cancel()
 
-	prod, err := p.svc.DisplayAllProductsLogic(ctx)
+	prod, err := p.svc.DisplayAllProductsLogic(p.logger, ctx)
 	if err != nil {
 		errors.HandleError(p.logger, w, err, http.StatusBadRequest)
 		return

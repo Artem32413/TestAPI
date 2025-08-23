@@ -1,6 +1,9 @@
 package host
 
 import (
+	"fmt"
+	"time"
+	"warehouses/cmd/host/closer"
 	"warehouses/cmd/host/middleware"
 	"warehouses/internal/transport"
 
@@ -10,27 +13,49 @@ import (
 	"go.uber.org/zap"
 )
 
-func StartMain(ctx context.Context, log *zap.Logger) error {
+const (
+	port            = ":8081"
+	shutdownTimeout = 5 * time.Second
+)
 
-	log.Info("Сервис Склады запущен",
-		zap.Int("Порт", 8081),
+func StartMain(ctx context.Context, log *zap.Logger) error {
+	var (
+		mux = transport.AllHandles(ctx, log)
+		srv = &http.Server{
+			Addr:    port,
+			Handler: middleware.LoggingMiddleware(mux),
+		}
+		c = &closer.Closer{}
 	)
 
-	mux := transport.AllHandles(ctx, log)
+	c.Add(srv.Shutdown)
 
-	s := http.Server{
-		Addr:    ":8081",
-		Handler: middleware.LoggingMiddleware(mux),
-	}
+	c.Add(func(ctx context.Context) error {
+		time.Sleep(3 * time.Second)
+
+		return nil
+	})
 
 	go func() {
-		<-ctx.Done()
-		log.Info("Сервер завершен")
-		s.Shutdown(ctx)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Error("сервер закрыт: ",
+				zap.Error(err),
+			)
+		}
 	}()
 
-	if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		return err
+	log.Info("сервер Склады слушает ",
+		zap.String("порт ", port),
+	)
+	<-ctx.Done()
+
+	log.Info("корректное завершение работы сервера")
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	defer cancel()
+
+	if err := c.Close(shutdownCtx); err != nil {
+		return fmt.Errorf("закрытие: %v", err)
 	}
 
 	return nil

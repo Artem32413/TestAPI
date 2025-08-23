@@ -25,7 +25,7 @@ func (s *AnalyticsHandler) AnalyticsTop(w http.ResponseWriter, r *http.Request) 
 	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 	defer cancel()
 
-	res, err := s.svc.AnalyticsTopLogic(ctx)
+	res, err := s.svc.AnalyticsTopLogic(s.logger, ctx)
 	if err != nil {
 		errors.HandleError(s.logger, w, err, http.StatusBadRequest)
 		return

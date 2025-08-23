@@ -33,7 +33,7 @@ func (wr *WarehousesHandler) AddingNewWarehouses(w http.ResponseWriter, r *http.
 	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 	defer cancel()
 
-	if err := wr.svc.AddingNewWarehousesLogic(ctx, warehouses); err != nil {
+	if err := wr.svc.AddingNewWarehousesLogic(wr.logger, ctx, warehouses); err != nil {
 		errors.HandleError(wr.logger, w, err, http.StatusBadRequest)
 		return
 	}
