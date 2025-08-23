@@ -17,7 +17,7 @@ import (
 // @Tags Склады
 // @Accept  json
 // @Produce  json
-// @Param warehouse body WarehousesSwagger true "Данные склада"
+// @Param warehouse body structs.WarehousesSwagger true "Данные склада"
 // @Success 200 "Склад успешно добавлен"
 // @Failure 400 "Некорректные входные данные"
 // @Failure 500 "Внутренняя ошибка сервера"

@@ -16,7 +16,7 @@ import (
 // @Description Возвращает список всех складов в системе
 // @Tags Склады
 // @Produce  json
-// @Success 200 {array} Warehouses "Список складов"
+// @Success 200 {array} structs.Warehouses "Список складов"
 // @Failure 400 "Ошибка запроса"
 // @Failure 500 "Внутренняя ошибка сервера"
 // @Router /warehouses/all/ [get]
