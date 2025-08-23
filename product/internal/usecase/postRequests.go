@@ -17,7 +17,7 @@ import (
 // @Tags Products
 // @Accept json
 // @Produce json
-// @Param product body Products true "Данные нового товара"
+// @Param product body structs.Products true "Данные нового товара"
 // @Success 200 "Товар успешно добавлен"
 // @Failure 400 "Неверные входные данные"
 // @Failure 500 "Внутренняя ошибка сервера"

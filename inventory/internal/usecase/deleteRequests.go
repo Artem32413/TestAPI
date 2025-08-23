@@ -17,7 +17,7 @@ import (
 // @Tags Inventory
 // @Accept json
 // @Produce json
-// @Param input body NewInventory true "Данные о покупке"
+// @Param input body structs.NewInventory true "Данные о покупке"
 // @Success 200 "Покупка успешно обработана"
 // @Failure 400 "Неверные входные данные или недостаточно товара"
 // @Failure 500 "Внутренняя ошибка сервера"

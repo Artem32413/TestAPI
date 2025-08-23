@@ -16,7 +16,7 @@ import (
 // @Tags Products
 // @Accept json
 // @Produce json
-// @Success 200 {array} Products "Список товаров"
+// @Success 200 {array} structs.Products "Список товаров"
 // @Failure 400 "Ошибка в запросе"
 // @Failure 500 "Внутренняя ошибка сервера"
 // @Router /products/all/ [get]

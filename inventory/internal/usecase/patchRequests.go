@@ -17,7 +17,7 @@ import (
 // @Tags Inventory
 // @Accept json
 // @Produce json
-// @Param input body InventorySwagger2 true "Данные обновления количества"
+// @Param input body structs.InventorySwagger2 true "Данные обновления количества"
 // @Success 200 "Количество успешно обновлено"
 // @Failure 400 "Неверные входные данные"
 // @Failure 500 "Внутренняя ошибка сервера"
@@ -47,7 +47,7 @@ func (i *InventoryHandler) UpdateInventory(w http.ResponseWriter, r *http.Reques
 // @Tags Inventory
 // @Accept json
 // @Produce json
-// @Param input body NewInventoryDiscount true "Данные для скидки"
+// @Param input body structs.NewInventoryDiscount true "Данные для скидки"
 // @Success 200 "Скидка успешно применена"
 // @Failure 400 "Неверные входные данные"
 // @Failure 500 "Внутренняя ошибка сервера"
@@ -78,8 +78,8 @@ func (i *InventoryHandler) DiscountInventory(w http.ResponseWriter, r *http.Requ
 // @Tags Inventory
 // @Accept json
 // @Produce json
-// @Param input body NewInventory true "Список товаров для подсчета"
-// @Success 200 {object} InventorySwagger5 "Итоговая стоимость"
+// @Param input body structs.NewInventory true "Список товаров для подсчета"
+// @Success 200 {object} structs.InventorySwagger5 "Итоговая стоимость"
 // @Failure 400 "Неверно введены данные"
 // @Failure 500 "Внутренняя ошибка сервера"
 // @Router /inventory/count/ [patch]

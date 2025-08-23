@@ -18,8 +18,8 @@ import (
 // @Tags Analytics
 // @Accept json
 // @Produce json
-// @Param request body AnalyticsSwagger true "Параметры запроса аналитики"
-// @Success 200 {array} Analytics "Успешный ответ"
+// @Param request body structs.AnalyticsSwagger true "Параметры запроса аналитики"
+// @Success 200 {array} structs.Analytics "Успешный ответ"
 // @Failure 400 "Ошибка в запросе"
 // @Failure 500 "Внутренняя ошибка сервера"
 // @Router /analytics/ [post]

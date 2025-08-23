@@ -17,7 +17,7 @@ import (
 // @Tags Products
 // @Accept json
 // @Produce json
-// @Param product body Products true "Обновленные данные товара"
+// @Param product body structs.Products true "Обновленные данные товара"
 // @Success 200 "Товар успешно обновлен"
 // @Failure 400 "Неверные входные данные"
 // @Failure 404 "Товар не найден"

@@ -17,7 +17,7 @@ import (
 // @Tags Inventory
 // @Accept json
 // @Produce json
-// @Param input body InventorySwagger1 true "Данные установки цены"
+// @Param input body structs.InventorySwagger1 true "Данные установки цены"
 // @Success 200 "Цена успешно установлена"
 // @Failure 400 "Неверные входные данные"
 // @Failure 500 "Внутренняя ошибка сервера"

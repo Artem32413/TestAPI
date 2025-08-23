@@ -17,8 +17,8 @@ import (
 // @Tags Inventory
 // @Accept json
 // @Produce json
-// @Param input body WarehousePagination true "Параметры пагинации"
-// @Success 200 {array} ListByWarehouse "Список товаров"
+// @Param input body structs.WarehousePagination true "Параметры пагинации"
+// @Success 200 {array} structs.ListByWarehouse "Список товаров"
 // @Failure 400 "Неверные входные данные"
 // @Failure 500 "Внутренняя ошибка сервера"
 // @Router /inventory/goods/ [get]
@@ -54,8 +54,8 @@ func (i *InventoryHandler) ListOfGoods(w http.ResponseWriter, r *http.Request) {
 // @Tags Inventory
 // @Accept json
 // @Produce json
-// @Param input body InventorySwagger4 true "Идентификаторы склада и товара"
-// @Success 200 {object} AllInformationAboutTheProduct "Полная информация о товаре"
+// @Param input body structs.InventorySwagger4 true "Идентификаторы склада и товара"
+// @Success 200 {object} structs.AllInformationAboutTheProduct "Полная информация о товаре"
 // @Failure 400 "Неверные входные данные"
 // @Failure 500 "Внутренняя ошибка сервера"
 // @Router /inventory/product/ [get]

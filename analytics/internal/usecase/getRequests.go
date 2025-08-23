@@ -17,7 +17,7 @@ import (
 // @Tags Analytics
 // @Accept json
 // @Produce json
-// @Success 200 {array} TopAnalytics "Список топовых складов"
+// @Success 200 {array} structs.TopAnalytics "Список топовых складов"
 // @Failure 400 "Ошибка в запросе"
 // @Failure 500 "Внутренняя ошибка сервера"
 // @Router /analytics/top/ [get]
