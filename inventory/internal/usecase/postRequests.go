@@ -31,7 +31,7 @@ func (i *InventoryHandler) SetPrice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 	defer cancel()
 
 	if err := i.svc.SetPriceLogic(i.logger, ctx, price); err != nil {

@@ -30,7 +30,7 @@ func (i *InventoryHandler) UpdateInventory(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 	defer cancel()
 
 	if err := i.svc.UpdateInventoryLogic(i.logger, ctx, inventory); err != nil {
@@ -61,7 +61,7 @@ func (i *InventoryHandler) DiscountInventory(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 	defer cancel()
 
 	if err := i.svc.DiscountInventoryLogic(i.logger, ctx, discount); err != nil {
@@ -91,7 +91,7 @@ func (i *InventoryHandler) CountPrice(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 	defer cancel()
 
 	res, err := i.svc.CountPriceLogic(i.logger, ctx, count)

@@ -30,7 +30,7 @@ func (i *InventoryHandler) PurchaseProduct(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 	defer cancel()
 
 	if err := i.svc.PurchaseProductLogic(i.logger, ctx, purchase); err != nil {

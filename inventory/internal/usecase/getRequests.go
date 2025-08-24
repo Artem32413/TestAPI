@@ -30,7 +30,7 @@ func (i *InventoryHandler) ListOfGoods(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 	defer cancel()
 
 	res, err := i.svc.ListOfGoodsLogic(i.logger, ctx, product)
@@ -67,7 +67,7 @@ func (i *InventoryHandler) ReceivingGoods(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
 	defer cancel()
 
 	res, err := i.svc.ReceivingGoodsLogic(i.logger, ctx, product)
