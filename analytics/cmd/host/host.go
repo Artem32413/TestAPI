@@ -4,11 +4,11 @@ import (
 	"analytics/cmd/host/closer"
 	"analytics/cmd/host/middleware"
 	"analytics/internal/transport"
-	"fmt"
-	"time"
 
 	"context"
+	"fmt"
 	"net/http"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -45,7 +45,7 @@ func StartMain(ctx context.Context, log *zap.Logger) error {
 	}()
 
 	log.Info("сервер Аналитика слушает ",
-		zap.String("порт ", port),
+		zap.String("порт", port),
 	)
 	<-ctx.Done()
 
@@ -60,4 +60,3 @@ func StartMain(ctx context.Context, log *zap.Logger) error {
 
 	return nil
 }
-

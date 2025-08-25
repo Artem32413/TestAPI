@@ -1,14 +1,14 @@
 package service
 
 import (
-	"analytics/internal/database/postgreSQL"
+	"analytics/internal/database/postgres"
 )
 
 type AnalyticsService struct {
-	repo *postgreSQL.DBService
+	repo *postgres.DBService
 }
 
-func New(repo *postgreSQL.DBService) *AnalyticsService {
+func NewAnalyticsService(repo *postgres.DBService) *AnalyticsService {
 	return &AnalyticsService{
 		repo: repo,
 	}

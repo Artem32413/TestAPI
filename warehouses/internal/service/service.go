@@ -1,14 +1,14 @@
 package service
 
 import (
-	"warehouses/internal/database/postgreSQL"
+	"warehouses/internal/database/postgres"
 )
 
 type WarehousesService struct {
-	repo *postgreSQL.DBService
+	repo *postgres.DBService
 }
 
-func New(repo *postgreSQL.DBService) *WarehousesService {
+func NewWarehousesService(repo *postgres.DBService) *WarehousesService {
 	return &WarehousesService{
 		repo: repo,
 	}

@@ -34,7 +34,7 @@ services:
 
   inventory-service:
     build:
-      context: ./ 
+      context: ./
       dockerfile: ./inventory/build/Dockerfile
     depends_on:
       db:
@@ -52,7 +52,7 @@ services:
 
   warehouses-service:
     build:
-      context: . 
+      context: .
       dockerfile: ./warehouses/build/Dockerfile
     depends_on:
       db:
@@ -70,7 +70,7 @@ services:
 
   product-service:
     build:
-      context: .  
+      context: .
       dockerfile: ./product/build/Dockerfile
     depends_on:
       db:
@@ -88,7 +88,7 @@ services:
 
   analytics-service:
     build:
-      context: . 
+      context: .
       dockerfile: ./analytics/build/Dockerfile
     depends_on:
       db:
@@ -106,6 +106,7 @@ services:
 
 volumes:
   postgres_data:
+
 
 networks:
   app-network:

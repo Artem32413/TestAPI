@@ -45,7 +45,7 @@ func StartMain(ctx context.Context, log *zap.Logger) error {
 	}()
 
 	log.Info("сервер Склады слушает ",
-		zap.String("порт ", port),
+		zap.String("порт", port),
 	)
 	<-ctx.Done()
 

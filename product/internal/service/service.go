@@ -1,14 +1,14 @@
 package service
 
 import (
-	"product/internal/database/postgreSQL"
+	"product/internal/database/postgres"
 )
 
 type ProductService struct {
-	repo *postgreSQL.DBService
+	repo *postgres.DBService
 }
 
-func New(repo *postgreSQL.DBService) *ProductService {
+func NewProductService(repo *postgres.DBService) *ProductService {
 	return &ProductService{
 		repo: repo,
 	}

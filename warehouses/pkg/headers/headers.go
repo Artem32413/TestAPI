@@ -16,6 +16,6 @@ func HeaderWithText(log *zap.Logger, w http.ResponseWriter, strErr []byte) {
 		errors.HandleError(log, w, fmt.Errorf("Ошибка в выводе данных: %v", err), http.StatusBadRequest)
 		return
 	}
-	
+
 	log.Info("Успешно")
 }

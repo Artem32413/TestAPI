@@ -1,14 +1,14 @@
 package service
 
 import (
-	"inventory/internal/database/postgreSQL"
+	"inventory/internal/database/postgres"
 )
 
 type InventoryService struct {
-	repo *postgreSQL.DBService
+	repo *postgres.DBService
 }
 
-func New(repo *postgreSQL.DBService) *InventoryService {
+func NewInventoryService(repo *postgres.DBService) *InventoryService {
 	return &InventoryService{
 		repo: repo,
 	}
