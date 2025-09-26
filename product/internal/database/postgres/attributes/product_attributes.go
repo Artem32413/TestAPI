@@ -7,6 +7,10 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+var (
+	query = `SELECT productId, key, value FROM ProductKeyValues WHERE productId = ANY($1)`
+)
+
 func ConvertMapToSlice(attrs map[string]string) []map[string]string {
 	var result []map[string]string
 
@@ -21,8 +25,6 @@ func GetAllAttributes(db *pgx.Conn, ctx context.Context, productIDs []string) (m
 	if len(productIDs) == 0 {
 		return make(map[string]map[string]string), nil
 	}
-
-	query := `SELECT productId, key, value FROM ProductKeyValues WHERE productId = ANY($1)`
 
 	rows, err := db.Query(ctx, query, productIDs)
 	if err != nil {

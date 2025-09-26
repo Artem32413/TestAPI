@@ -3,7 +3,7 @@ package attributes
 import (
 	"context"
 	"fmt"
-	
+
 	"inventory/internal/model/structs"
 
 	"github.com/jackc/pgx/v5"
@@ -13,6 +13,7 @@ import (
 var (
 	existsWarehouse = `SELECT EXISTS(SELECT 1 FROM Inventory WHERE warehouseId = $1)`
 	exists          = `SELECT EXISTS(SELECT 1 FROM Inventory WHERE warehouseId = $1 AND productId = $2)`
+	query           = `SELECT productId, key, value FROM productKeyValues WHERE productId = ANY($1)`
 )
 
 func Exists(log *zap.Logger, db *pgx.Conn, ctx context.Context, a int, value structs.Inventory, value2 structs.NewInventoryDiscount, value3 structs.NewInventory, value4 structs.WarehousePagination) bool {
@@ -49,11 +50,9 @@ func GetAllAttributes(db *pgx.Conn, productIDs []string) (map[string]map[string]
 		return make(map[string]map[string]string), nil
 	}
 
-	query := `SELECT productId, key, value FROM product_key_values WHERE productId = ANY($1)`
-
 	rows, err := db.Query(context.Background(), query, productIDs)
 	if err != nil {
-		return nil, fmt.Errorf("query attributes failed: %w", err)
+		return nil, fmt.Errorf("Ошибка в поиске атрибутов: %w", err)
 	}
 
 	defer rows.Close()
@@ -63,7 +62,7 @@ func GetAllAttributes(db *pgx.Conn, productIDs []string) (map[string]map[string]
 	for rows.Next() {
 		var productID, key, value string
 		if err := rows.Scan(&productID, &key, &value); err != nil {
-			return nil, fmt.Errorf("scan attribute failed: %w", err)
+			return nil, fmt.Errorf("Ошибка в сканировании атрибутов: %w", err)
 		}
 
 		if _, exists := attrs[productID]; !exists {
